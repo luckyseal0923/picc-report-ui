@@ -2,13 +2,13 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PICC 待施打清單</title>
 
   <style>
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
-      background: #f6f7f9;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial;
+      background: #f5f7fa;
       margin: 0;
       padding: 16px;
     }
@@ -51,88 +51,101 @@
       color: #666;
     }
 
-    .btn {
-      padding: 6px 10px;
-      font-size: 13px;
+    button {
+      padding: 6px 12px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
+      font-size: 13px;
     }
 
-    .btn-disabled {
-      background: #e5e7eb;
-      color: #777;
-      cursor: not-allowed;
-    }
-
-    .btn-active {
-      background: #0a84ff;
+    button.done {
+      background: #0d6efd;
       color: #fff;
     }
 
+    button.disabled {
+      background: #e5e7eb;
+      color: #999;
+      cursor: not-allowed;
+    }
+
     .error {
-      color: #d00;
-      font-size: 14px;
+      color: #c00;
       margin-top: 12px;
     }
   </style>
 </head>
-
 <body>
-  <h1>📋 目前待施打 PICC 清單</h1>
 
-  <div id="list" class="list"></div>
-  <div id="error" class="error"></div>
+<h1>📋 目前待施打 PICC 清單</h1>
 
-  <script>
-    const API_URL = "https://chiwei.app.n8n.cloud/webhook/picc/pending-list";
+<div id="list" class="list"></div>
+<div id="error" class="error"></div>
 
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        const listEl = document.getElementById("list");
+<script>
+const API_LIST =
+  "https://https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
 
-        if (!Array.isArray(data) || data.length === 0) {
-          listEl.innerHTML = "<div class='row'>目前沒有待施打資料</div>";
-          return;
-        }
+const API_REPORT =
+  "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
 
-        data.forEach(item => {
-          const row = document.createElement("div");
-          row.className = "row";
+async function loadList() {
+  try {
+    const res = await fetch(API_LIST);
+    const data = await res.json();
 
-          const info = document.createElement("div");
-          info.className = "info";
-          info.innerHTML = `
-            <div class="name">${item.name || "未命名病人"}</div>
-            <div class="meta">
-              床號 ${item.bedNo || "-"} ｜ MRN ${item.mrn || "-"} ｜ ${item.createdAt || ""}
-            </div>
-          `;
+    const listEl = document.getElementById("list");
+    listEl.innerHTML = "";
 
-          const btn = document.createElement("button");
+    data.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "row";
 
-          if (item.canClick === true) {
-            btn.className = "btn btn-active";
-            btn.textContent = "回報完成";
-            btn.onclick = () => {
-              alert("下一步：回報完成（我們等一下接）");
-            };
-          } else {
-            btn.className = "btn btn-disabled";
-            btn.textContent = item.displayStatus || "不可操作";
-            btn.disabled = true;
-          }
+      row.innerHTML = `
+        <div class="info">
+          <div class="name">${item.name}</div>
+          <div class="meta">
+            床號 ${item.bedNo} ｜ MRN ${item.mrn} ｜ ${item.createdAt}
+          </div>
+        </div>
+        <button class="${item.canClick ? 'done' : 'disabled'}"
+                ${item.canClick ? '' : 'disabled'}>
+          ${item.canClick ? '回報完成' : '已被接單'}
+        </button>
+      `;
 
-          row.appendChild(info);
-          row.appendChild(btn);
-          listEl.appendChild(row);
-        });
-      })
-      .catch(err => {
-        document.getElementById("error").textContent = "❌ 無法載入待施打清單";
-        console.error(err);
-      });
-  </script>
+      const btn = row.querySelector("button");
+
+      if (item.canClick) {
+        btn.onclick = async () => {
+          btn.disabled = true;
+          btn.innerText = "回報中…";
+
+          await fetch(API_REPORT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskId: item.taskId
+            })
+          });
+
+          btn.innerText = "已回報";
+          btn.className = "disabled";
+        };
+      }
+
+      listEl.appendChild(row);
+    });
+
+  } catch (e) {
+    document.getElementById("error").innerText =
+      "❌ 無法載入待施打清單";
+  }
+}
+
+loadList();
+</script>
+
 </body>
 </html>
