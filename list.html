@@ -2,87 +2,88 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PICC 待施打清單</title>
 
   <style>
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial;
-      background: #f6f7f9;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: #f5f7fa;
       margin: 0;
-      padding: 24px;
+      padding: 16px;
     }
 
     h1 {
-      font-size: 20px;
-      margin-bottom: 16px;
+      font-size: 18px;
+      margin-bottom: 12px;
     }
 
     .list {
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+      border-radius: 10px;
       overflow: hidden;
+      border: 1px solid #e5e7eb;
     }
 
     .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      border-bottom: 1px solid #eee;
+      padding: 14px;
+      border-bottom: 1px solid #eef2f7;
     }
 
     .row:last-child {
       border-bottom: none;
     }
 
-    .info .name {
-      font-size: 16px;
+    .name {
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
-    .info .meta {
+    .meta {
       font-size: 13px;
-      color: #666;
+      color: #6b7280;
     }
 
     button {
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
       border: none;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
     }
 
     .done {
-      background: #1677ff;
+      background: #2563eb;
       color: #fff;
     }
 
     .disabled {
-      background: #e0e0e0;
-      color: #888;
+      background: #e5e7eb;
+      color: #9ca3af;
       cursor: not-allowed;
     }
 
     .error {
-      color: #d93025;
       margin-top: 12px;
+      color: #dc2626;
     }
   </style>
 </head>
-
 <body>
-  <h1>📋 目前待施打 PICC 清單</h1>
 
+  <h1>📋 目前待施打 PICC 清單</h1>
   <div id="list" class="list"></div>
   <div id="error" class="error"></div>
 
   <script>
-    const API_LIST   = "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
-    const API_REPORT = "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
+    const API_LIST =
+      "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+
+    const API_REPORT =
+      "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
 
     async function loadList() {
       try {
@@ -90,66 +91,53 @@
         const data = await res.json();
 
         const listEl = document.getElementById("list");
-        const errorEl = document.getElementById("error");
         listEl.innerHTML = "";
-        errorEl.textContent = "";
 
         data.forEach(item => {
           const row = document.createElement("div");
           row.className = "row";
 
           row.innerHTML = `
-            <div class="info">
+            <div>
               <div class="name">${item.name}</div>
               <div class="meta">
                 床號 ${item.bedNo} ｜ MRN ${item.mrn} ｜ ${item.createdAt}
               </div>
             </div>
-            <button class="${item.canClick ? "done" : "disabled"}"
-              ${item.canClick ? "" : "disabled"}>
-              ${item.canClick ? "回報完成" : item.displayStatus || "已處理"}
-            </button>
+            ${
+              item.canClick
+                ? `<button class="done" onclick="reportDone('${item.taskId}')">回報完成</button>`
+                : `<button class="disabled" disabled>已回報</button>`
+            }
           `;
-
-          const btn = row.querySelector("button");
-
-          if (item.canClick) {
-            btn.onclick = async () => {
-              btn.disabled = true;
-              btn.textContent = "回報中…";
-
-              try {
-                const res = await fetch(API_REPORT, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    taskId: item.taskId
-                  })
-                });
-
-                if (!res.ok) throw new Error("回報失敗");
-
-                // ✅ 關鍵：重新載入清單
-                await loadList();
-
-              } catch (err) {
-                alert("回報失敗，請稍後再試");
-                btn.disabled = false;
-                btn.textContent = "回報完成";
-              }
-            };
-          }
 
           listEl.appendChild(row);
         });
-
       } catch (err) {
-        document.getElementById("error").textContent =
+        document.getElementById("error").innerText =
           "❌ 無法載入待施打清單";
+      }
+    }
+
+    async function reportDone(taskId) {
+      try {
+        const res = await fetch(API_REPORT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskId })
+        });
+
+        if (!res.ok) throw new Error("fail");
+
+        alert("✅ 回報成功");
+        loadList();
+      } catch (e) {
+        alert("❌ 回報失敗，請稍後再試");
       }
     }
 
     loadList();
   </script>
+
 </body>
 </html>
