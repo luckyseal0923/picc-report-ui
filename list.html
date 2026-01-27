@@ -1,151 +1,165 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PICC 待施打清單</title>
-
   <style>
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Arial;
-      background: #f5f7fa;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background: #f5f6f8;
       margin: 0;
-      padding: 16px;
+      padding: 24px;
     }
 
     h1 {
-      font-size: 18px;
-      margin-bottom: 12px;
+      font-size: 20px;
+      margin-bottom: 16px;
     }
 
-    .list {
+    .card {
       background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-    }
-
-    .row {
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 14px;
-      border-bottom: 1px solid #eef0f4;
+      border: 1px solid #e0e0e0;
     }
 
-    .row:last-child {
-      border-bottom: none;
-    }
-
-    .info {
-      line-height: 1.4;
-    }
-
-    .name {
-      font-weight: 600;
+    .info .name {
+      font-size: 16px;
+      font-weight: bold;
       margin-bottom: 4px;
     }
 
-    .meta {
+    .info .meta {
       font-size: 13px;
       color: #666;
     }
 
     button {
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 6px;
       border: none;
+      font-size: 14px;
       cursor: pointer;
-      font-size: 13px;
     }
 
-    button.done {
+    .done {
       background: #0d6efd;
       color: #fff;
     }
 
-    button.disabled {
-      background: #e5e7eb;
-      color: #999;
+    .disabled {
+      background: #e0e0e0;
+      color: #888;
       cursor: not-allowed;
     }
 
     .error {
-      color: #c00;
+      color: red;
       margin-top: 12px;
     }
   </style>
 </head>
 <body>
 
-<h1>📋 目前待施打 PICC 清單</h1>
+  <h1>📋 目前待施打 PICC 清單</h1>
 
-<div id="list" class="list"></div>
-<div id="error" class="error"></div>
+  <div id="list"></div>
+  <div id="error" class="error"></div>
 
-<script>
-const API_LIST =
-  "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+  <script>
+    // ===== n8n API =====
+    const API_LIST =
+      "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
 
-const API_REPORT =
-  "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
+    const API_REPORT =
+      "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
 
-async function loadList() {
-  try {
-    const res = await fetch(API_LIST);
-    const data = await res.json();
+    // ===== 載入清單 =====
+    async function loadList() {
+      const listEl = document.getElementById("list");
+      const errorEl = document.getElementById("error");
 
-    const listEl = document.getElementById("list");
-    listEl.innerHTML = "";
+      listEl.innerHTML = "";
+      errorEl.textContent = "";
 
-    data.forEach(item => {
-      const row = document.createElement("div");
-      row.className = "row";
+      try {
+        const res = await fetch(API_LIST);
+        const data = await res.json();
 
-      row.innerHTML = `
-        <div class="info">
-          <div class="name">${item.name}</div>
-          <div class="meta">
-            床號 ${item.bedNo} ｜ MRN ${item.mrn} ｜ ${item.createdAt}
-          </div>
-        </div>
-        <button class="${item.canClick ? 'done' : 'disabled'}"
-                ${item.canClick ? '' : 'disabled'}>
-          ${item.canClick ? '回報完成' : '已被接單'}
-        </button>
-      `;
+        if (!Array.isArray(data)) {
+          throw new Error("回傳格式錯誤");
+        }
 
-      const btn = row.querySelector("button");
+        data.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
 
-      if (item.canClick) {
-        btn.onclick = async () => {
-          btn.disabled = true;
-          btn.innerText = "回報中…";
+          const info = document.createElement("div");
+          info.className = "info";
+          info.innerHTML = `
+            <div class="name">${item.name}</div>
+            <div class="meta">
+              床號 ${item.bedNo} ｜ MRN ${item.mrn} ｜ ${item.createdAt}
+            </div>
+          `;
 
-          await fetch(API_REPORT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              taskId: item.taskId
-            })
-          });
+          const btn = document.createElement("button");
 
-          btn.innerText = "已回報";
-          btn.className = "disabled";
-        };
+          if (item.canClick) {
+            btn.className = "done";
+            btn.textContent = "回報完成";
+            btn.onclick = () => reportDone(item.taskId);
+          } else {
+            btn.className = "disabled";
+            btn.textContent = "已被接單";
+            btn.disabled = true;
+          }
+
+          card.appendChild(info);
+          card.appendChild(btn);
+          listEl.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = "❌ 無法載入待施打清單";
+      }
+    }
+
+    // ===== 回報完成 =====
+    async function reportDone(taskId) {
+      if (!taskId) {
+        alert("缺少 taskId，無法回報");
+        return;
       }
 
-      listEl.appendChild(row);
-    });
+      try {
+        await fetch(API_REPORT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            taskId: taskId
+          })
+        });
 
-  } catch (e) {
-    document.getElementById("error").innerText =
-      "❌ 無法載入待施打清單";
-  }
-}
+        alert("✅ 已回報完成");
+        loadList();
 
-loadList();
-</script>
+      } catch (err) {
+        console.error(err);
+        alert("❌ 回報失敗");
+      }
+    }
+
+    // ===== 啟動 =====
+    loadList();
+  </script>
 
 </body>
 </html>
