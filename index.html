@@ -1,336 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PICC 完成回報表單</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PICC 待施打清單</title>
+
   <style>
-    :root { --w: 860px; }
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif; margin: 0; background:#f6f7f9; color:#111; }
-    .wrap { max-width: var(--w); margin: 24px auto; padding: 0 14px; }
-    .card { background:#fff; border:1px solid #e6e8ee; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
-    header { padding: 16px 18px; border-bottom:1px solid #eef0f4; background:#fbfcfe; }
-    h1 { font-size: 18px; margin: 0 0 6px; }
-    .sub { font-size: 13px; color:#555; line-height:1.45; }
-    form { padding: 18px; }
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .row { display:flex; flex-direction:column; gap:6px; }
-    label { font-size: 13px; color:#222; }
-    input, select, textarea {
-      font-size: 14px; padding: 10px 10px; border-radius: 10px;
-      border:1px solid #d6dae3; outline:none; background:#fff;
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: #f6f7f9;
+      margin: 0;
+      padding: 16px;
     }
-    input:focus, select:focus, textarea:focus { border-color:#7aa7ff; box-shadow: 0 0 0 3px rgba(122,167,255,.18); }
-    textarea { min-height: 96px; resize: vertical; }
-    .muted { font-size: 12px; color:#666; line-height:1.4; }
-    .hint { font-size: 12px; color:#7a5200; background:#fff8e6; border:1px solid #ffe2a6; padding: 8px 10px; border-radius:10px; display:none; }
-    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; font-size:12px; background:#eef3ff; border:1px solid #d8e5ff; color:#244; }
-    .divider { height:1px; background:#eef0f4; margin: 14px 0; }
-    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 6px; }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .list {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eef0f4;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .info {
+      line-height: 1.4;
+    }
+
+    .bed {
+      font-weight: 600;
+    }
+
+    .name {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #666;
+    }
+
     button {
-      cursor:pointer; border:0; border-radius: 10px; padding: 10px 14px; font-size: 14px;
-      background:#111; color:#fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
     }
-    button.secondary { background:#e9ecf3; color:#111; }
-    button:disabled { opacity: .6; cursor:not-allowed; }
-    .status { font-size: 13px; color:#333; }
-    .ok { color:#0b6b2a; }
-    .err { color:#b00020; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+    button.active {
+      background: #0a84ff;
+      color: white;
+    }
+
+    button.disabled {
+      background: #e5e7eb;
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #c00;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <h1>PICC 完成回報</h1>
-        <div class="sub">
-          <span class="pill">v1.0</span>
-          填寫完成後將送出回報資料並更新任務狀態為「已完成」。
-        </div>
-      </header>
 
-      <form id="reportForm">
-        <!-- =========================
-             Hidden Identifiers (不可手動修改)
-             ========================= -->
-        <input type="hidden" id="taskId" name="taskId" />
-        <input type="hidden" id="claimedBy" name="claimedBy" />
+<h1>📋 目前待施打 PICC 清單</h1>
 
-        <!-- =========================
-             Task Summary (顯示但不可改)
-             ========================= -->
-        <div class="grid">
-          <div class="row">
-            <label>床號（不可改）</label>
-            <input id="bedNo" name="bedNo" type="text" readonly />
-          </div>
-          <div class="row">
-            <label>病歷號（不可改）</label>
-            <input id="mrn" name="mrn" type="text" readonly />
-          </div>
-          <div class="row">
-            <label>姓名（不可改）</label>
-            <input id="name" name="name" type="text" readonly />
-          </div>
-          <div class="row">
-            <label>施打人（claimedBy，不可改）</label>
-            <input id="claimedByDisplay" type="text" readonly />
-          </div>
-        </div>
+<div id="list" class="list"></div>
+<div id="error" class="error"></div>
 
-        <div class="divider"></div>
+<script>
+const API_URL = "https://chiwhei.app.n8n.cloud/webhook/picc/pending-list";
 
-        <!-- =========================
-             Required Procedure Fields
-             ========================= -->
-        <div class="grid">
-          <div class="row">
-            <label for="procedureTime">施打時間（必填）</label>
-            <input id="procedureTime" name="procedureTime" type="datetime-local" required />
-            <div class="muted">預設為目前時間，可自行調整。</div>
-          </div>
+async function loadList() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("API 讀取失敗");
 
-          <div class="row">
-            <label for="catheterType">管路類型（必填）</label>
-            <select id="catheterType" name="catheterType" required>
-              <option value="" selected disabled>請選擇</option>
-              <option value="單腔PICC">單腔 PICC</option>
-              <option value="雙腔PICC">雙腔 PICC</option>
-            </select>
-          </div>
+    const data = await res.json();
+    renderList(data);
+  } catch (err) {
+    document.getElementById("error").innerText = "❌ 無法載入待施打清單";
+    console.error(err);
+  }
+}
 
-          <div class="row">
-            <label for="insertionSite">施打部位（必填）</label>
-            <select id="insertionSite" name="insertionSite" required>
-              <option value="" selected disabled>請選擇</option>
-              <option value="右上臂">右上臂</option>
-              <option value="左上臂">左上臂</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
+function renderList(items) {
+  const container = document.getElementById("list");
+  container.innerHTML = "";
 
-          <div class="row">
-            <label for="vein">血管（必填）</label>
-            <select id="vein" name="vein" required>
-              <option value="" selected disabled>請選擇</option>
-              <option value="Basilic">Basilic</option>
-              <option value="Cephalic">Cephalic</option>
-              <option value="Brachial">Brachial</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
+  if (!items.length) {
+    container.innerHTML = "<div class='row'>目前沒有待施打項目</div>";
+    return;
+  }
 
-          <div class="row">
-            <label for="catheterLength">管路長度（cm，必填）</label>
-            <input id="catheterLength" name="catheterLength" type="number" inputmode="decimal" min="0" step="0.1" required placeholder="例如：45" />
-            <div class="muted">請輸入數字（單位 cm）。</div>
-          </div>
+  items.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "row";
 
-          <div class="row">
-            <label for="difficulty">施打難度（選填）</label>
-            <select id="difficulty" name="difficulty">
-              <option value="" selected>（不填）</option>
-              <option value="順利">順利</option>
-              <option value="中等">中等</option>
-              <option value="困難">困難</option>
-            </select>
-          </div>
-        </div>
+    const info = document.createElement("div");
+    info.className = "info";
+    info.innerHTML = `
+      <div class="bed">床號 ${item.bedNo}</div>
+      <div class="name">${item.name}</div>
+      <div class="meta">病歷號 ${item.mrn}</div>
+    `;
 
-        <div id="otherHint" class="hint" style="margin-top:12px;">
-          你已選擇「其他」，請在下方備註中補充實際部位/血管資訊，以便日後追蹤與統計。
-        </div>
+    const btn = document.createElement("button");
+    btn.innerText = item.displayStatus;
 
-        <div class="divider"></div>
-
-        <!-- =========================
-             Optional Remarks
-             ========================= -->
-        <div class="row">
-          <label for="remark">備註（選填）</label>
-          <textarea id="remark" name="remark" placeholder="若部位/血管選「其他」，請在此補充。例如：右上臂前臂近端、穿刺困難原因等。"></textarea>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- =========================
-             Submit
-             ========================= -->
-        <div class="actions">
-          <button id="submitBtn" type="submit">送出完成回報</button>
-          <button class="secondary" type="button" id="fillNowBtn">填入現在時間</button>
-          <span id="statusText" class="status"></span>
-        </div>
-
-        <div class="muted" style="margin-top:10px;">
-          <span class="mono">送出內容格式：</span> JSON（application/json）。<br/>
-          請將本頁的 <span class="mono">WEBHOOK_URL</span> 改成你的 n8n「完成回報」Production URL。
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    /* =========================
-       Config
-       ========================= */
-    // TODO: 改成你的 n8n「完成回報」Webhook Production URL
-    const WEBHOOK_URL = "https://chihwei.app.n8n.cloud/webhook/d5adfa07-2131-4589-9649-8161e5806234";
-
-    /* =========================
-       Helpers
-       ========================= */
-    function pad2(n) { return String(n).padStart(2, "0"); }
-
-    // datetime-local 需要 "YYYY-MM-DDTHH:mm"
-    function toDatetimeLocalValue(d) {
-      const yyyy = d.getFullYear();
-      const mm = pad2(d.getMonth() + 1);
-      const dd = pad2(d.getDate());
-      const hh = pad2(d.getHours());
-      const mi = pad2(d.getMinutes());
-      return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
-    }
-
-    function setStatus(msg, kind) {
-      const el = document.getElementById("statusText");
-      el.textContent = msg || "";
-      el.classList.remove("ok", "err");
-      if (kind === "ok") el.classList.add("ok");
-      if (kind === "err") el.classList.add("err");
-    }
-
-    function getQueryParams() {
-      const params = new URLSearchParams(window.location.search);
-      const obj = {};
-      for (const [k, v] of params.entries()) obj[k] = v;
-      return obj;
-    }
-
-    function showOtherHintIfNeeded() {
-      const insertionSite = document.getElementById("insertionSite").value;
-      const vein = document.getElementById("vein").value;
-      const hint = document.getElementById("otherHint");
-      const need = (insertionSite === "其他" || vein === "其他");
-      hint.style.display = need ? "block" : "none";
-    }
-
-    /* =========================
-       Init (prefill)
-       ========================= */
-    (function init() {
-      // Default now
-      document.getElementById("procedureTime").value = toDatetimeLocalValue(new Date());
-
-      // Prefill from query string (recommended)
-      // Example:
-      // ?taskId=xxx&bedNo=A12&name=王大明&mrn=123456&claimedBy=張智維
-      const q = getQueryParams();
-
-      if (q.taskId) document.getElementById("taskId").value = q.taskId;
-      if (q.bedNo) document.getElementById("bedNo").value = q.bedNo;
-      if (q.name) document.getElementById("name").value = q.name;
-      if (q.mrn) document.getElementById("mrn").value = q.mrn;
-
-      if (q.claimedBy) {
-        document.getElementById("claimedBy").value = q.claimedBy;
-        document.getElementById("claimedByDisplay").value = q.claimedBy;
-      }
-
-      // If not provided, still show placeholder
-      if (!q.claimedBy) document.getElementById("claimedByDisplay").value = "(未帶入)";
-
-      // Watch "其他"
-      document.getElementById("insertionSite").addEventListener("change", showOtherHintIfNeeded);
-      document.getElementById("vein").addEventListener("change", showOtherHintIfNeeded);
-
-      // Fill-now button
-      document.getElementById("fillNowBtn").addEventListener("click", () => {
-        document.getElementById("procedureTime").value = toDatetimeLocalValue(new Date());
-      });
-
-      showOtherHintIfNeeded();
-    })();
-
-    /* =========================
-       Submit
-       ========================= */
-    document.getElementById("reportForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      setStatus("");
-
-      const submitBtn = document.getElementById("submitBtn");
-
-      // Basic guard: webhook url
-      if (!WEBHOOK_URL || WEBHOOK_URL.includes("YOUR_N8N_WEBHOOK")) {
-        setStatus("請先把 WEBHOOK_URL 改成你的 n8n 完成回報 Production URL。", "err");
-        return;
-      }
-
-      // Validate required hidden fields
-      const taskId = document.getElementById("taskId").value.trim();
-      const claimedBy = document.getElementById("claimedBy").value.trim();
-      if (!taskId) {
-        setStatus("缺少 taskId（請用連結帶入 ?taskId=...）。", "err");
-        return;
-      }
-      if (!claimedBy) {
-        setStatus("缺少 claimedBy（請用連結帶入 ?claimedBy=...）。", "err");
-        return;
-      }
-
-      // Build payload
-      const payload = {
-        taskId,
-        bedNo: document.getElementById("bedNo").value.trim(),
-        name: document.getElementById("name").value.trim(),
-        mrn: document.getElementById("mrn").value.trim(),
-        claimedBy,
-        procedureTime: document.getElementById("procedureTime").value, // "YYYY-MM-DDTHH:mm"
-        insertionSite: document.getElementById("insertionSite").value,
-        vein: document.getElementById("vein").value,
-        catheterLength: Number(document.getElementById("catheterLength").value),
-        catheterType: document.getElementById("catheterType").value,
-        difficulty: document.getElementById("difficulty").value || "",
-        remark: document.getElementById("remark").value.trim() || ""
+    if (item.canClick) {
+      btn.className = "active";
+      btn.onclick = () => {
+        alert("之後接這裡 → 接單 API\nTaskID: " + item.taskId);
       };
+    } else {
+      btn.className = "disabled";
+      btn.disabled = true;
+    }
 
-      // Soft hint enforcement: if "其他" selected, remark recommended (not hard-block)
-      const needRemark = (payload.insertionSite === "其他" || payload.vein === "其他");
-      if (needRemark && !payload.remark) {
-        setStatus("你選了「其他」，建議在備註補充實際部位/血管資訊（仍可送出）。", "err");
-        // Not blocking: continue
-      }
+    row.appendChild(info);
+    row.appendChild(btn);
+    container.appendChild(row);
+  });
+}
 
-      try {
-        submitBtn.disabled = true;
-        setStatus("送出中…");
+loadList();
+</script>
 
-        const res = await fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const text = await res.text().catch(() => "");
-        if (!res.ok) {
-          setStatus(`送出失敗（HTTP ${res.status}）。${text ? " 回應：" + text : ""}`, "err");
-          return;
-        }
-
-        setStatus("送出成功：已完成回報已送出。你可以關閉此頁面。", "ok");
-        // Optional: auto-disable form to prevent double submit
-        document.querySelectorAll("input,select,textarea,button").forEach(el => {
-          if (el.id !== "fillNowBtn") el.disabled = true;
-        });
-      } catch (err) {
-        setStatus("送出失敗：網路或 Webhook 設定問題。請確認 URL、n8n workflow 已啟用且使用 Production URL。", "err");
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-  </script>
 </body>
 </html>
