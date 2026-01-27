@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PICC 待施打清單</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: #f6f7f9;
+      margin: 0;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .list {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eef0f4;
+    }
+    .row:last-child {
+      border-bottom: none;
+    }
+    .info {
+      line-height: 1.4;
+    }
+    .bed {
+      font-weight: 600;
+    }
+    .name {
+      color: #333;
+      font-size: 14px;
+    }
+    .claimer {
+      font-size: 12px;
+      color: #666;
+    }
+    button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-active {
+      background: #111;
+      color: #fff;
+    }
+    .btn-disabled {
+      background: #e5e7eb;
+      color: #999;
+      cursor: not-allowed;
+    }
+    .loading, .error {
+      padding: 12px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🩺 目前待施打 PICC 清單</h1>
+
+<div id="content" class="list">
+  <div class="loading">載入中…</div>
+</div>
+
+<script>
+/* =========================
+   設定區（只要改這裡）
+   ========================= */
+
+// 👉 n8n「查詢待施打清單」Webhook（GET）
+const API_URL = "https://YOUR_N8N_LIST_API_URL_HERE";
+
+// 👉 你的完成回報表單頁
+const REPORT_PAGE = "https://luckyseal0923.github.io/picc-report-ui/";
+
+/* =========================
+   取得目前使用者（第一版用 claimedBy 名字）
+   ========================= */
+
+const params = new URLSearchParams(window.location.search);
+const currentUser = params.get("claimedBy");
+
+/* =========================
+   主程式
+   ========================= */
+
+const content = document.getElementById("content");
+
+if (!currentUser) {
+  content.innerHTML = '<div class="error">❌ 缺少使用者資訊（claimedBy）</div>';
+} else {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        content.innerHTML = '<div class="loading">目前沒有待施打任務</div>';
+        return;
+      }
+
+      content.innerHTML = "";
+
+      data.forEach(task => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const info = document.createElement("div");
+        info.className = "info";
+        info.innerHTML = `
+          <div class="bed">床號：${task.bedNo}</div>
+          <div class="name">病人：${task.name}</div>
+          <div class="claimer">接單者：${task.claimedBy}</div>
+        `;
+
+        const btn = document.createElement("button");
+
+        if (task.claimedBy === currentUser) {
+          btn.className = "btn-active";
+          btn.textContent = "填寫完成回報";
+          btn.onclick = () => {
+            const url =
+              REPORT_PAGE +
+              "?taskId=" + encodeURIComponent(task.taskId) +
+              "&bedNo=" + encodeURIComponent(task.bedNo) +
+              "&mrn=" + encodeURIComponent(task.mrn) +
+              "&name=" + encodeURIComponent(task.name) +
+              "&claimedBy=" + encodeURIComponent(task.claimedBy);
+            window.location.href = url;
+          };
+        } else {
+          btn.className = "btn-disabled";
+          btn.textContent = "僅供查看";
+          btn.disabled = true;
+        }
+
+        row.appendChild(info);
+        row.appendChild(btn);
+        content.appendChild(row);
+      });
+    })
+    .catch(() => {
+      content.innerHTML = '<div class="error">❌ 無法載入待施打清單</div>';
+    });
+}
+</script>
+
+</body>
+</html>
