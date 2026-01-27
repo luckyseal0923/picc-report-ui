@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PICC 待施打清單</title>
 
   <style>
@@ -31,7 +31,6 @@
       align-items: center;
       padding: 12px 14px;
       border-bottom: 1px solid #eef0f4;
-      gap: 12px;
     }
 
     .row:last-child {
@@ -39,66 +38,59 @@
     }
 
     .info {
-      flex: 1;
       line-height: 1.4;
     }
 
     .name {
       font-weight: 600;
+      margin-bottom: 4px;
     }
 
     .meta {
-      font-size: 12px;
+      font-size: 13px;
       color: #666;
     }
 
-    .action {
-      white-space: nowrap;
-    }
-
-    button {
-      padding: 6px 12px;
+    .btn {
+      padding: 6px 10px;
+      font-size: 13px;
       border-radius: 6px;
       border: none;
-      font-size: 13px;
       cursor: pointer;
     }
 
     .btn-disabled {
       background: #e5e7eb;
-      color: #888;
+      color: #777;
       cursor: not-allowed;
     }
 
-    .btn-action {
+    .btn-active {
       background: #0a84ff;
       color: #fff;
     }
 
     .error {
-      color: #c00;
-      margin-top: 12px;
+      color: #d00;
       font-size: 14px;
+      margin-top: 12px;
     }
   </style>
 </head>
-<body>
 
+<body>
   <h1>📋 目前待施打 PICC 清單</h1>
 
   <div id="list" class="list"></div>
   <div id="error" class="error"></div>
 
   <script>
-    const API_URL = "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+    const API_URL = "https://chiwei.app.n8n.cloud/webhook/picc/pending-list";
 
-    async function loadList() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
         const listEl = document.getElementById("list");
-        listEl.innerHTML = "";
 
         if (!Array.isArray(data) || data.length === 0) {
           listEl.innerHTML = "<div class='row'>目前沒有待施打資料</div>";
@@ -112,44 +104,35 @@
           const info = document.createElement("div");
           info.className = "info";
           info.innerHTML = `
-            <div class="name">${item.name || "未命名"}</div>
+            <div class="name">${item.name || "未命名病人"}</div>
             <div class="meta">
               床號 ${item.bedNo || "-"} ｜ MRN ${item.mrn || "-"} ｜ ${item.createdAt || ""}
             </div>
           `;
 
-          const action = document.createElement("div");
-          action.className = "action";
+          const btn = document.createElement("button");
 
-          if (item.canClick) {
-            const btn = document.createElement("button");
-            btn.className = "btn-action";
+          if (item.canClick === true) {
+            btn.className = "btn btn-active";
             btn.textContent = "回報完成";
             btn.onclick = () => {
-              alert("下一階段才會接『回報完成』流程");
+              alert("下一步：回報完成（我們等一下接）");
             };
-            action.appendChild(btn);
           } else {
-            const btn = document.createElement("button");
-            btn.className = "btn-disabled";
-            btn.textContent = item.displayStatus || "不可回報";
+            btn.className = "btn btn-disabled";
+            btn.textContent = item.displayStatus || "不可操作";
             btn.disabled = true;
-            action.appendChild(btn);
           }
 
           row.appendChild(info);
-          row.appendChild(action);
+          row.appendChild(btn);
           listEl.appendChild(row);
         });
-
-      } catch (err) {
+      })
+      .catch(err => {
         document.getElementById("error").textContent = "❌ 無法載入待施打清單";
         console.error(err);
-      }
-    }
-
-    loadList();
+      });
   </script>
-
 </body>
 </html>
