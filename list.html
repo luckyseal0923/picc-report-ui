@@ -130,12 +130,12 @@ function renderRow(item) {
   const card = document.createElement("div");
   card.className = "card";
 
-  const taskId   = s(item.taskId);
-  const name     = s(item.name);
-  const bedNo    = s(item.bedNo);
-  const mrn      = s(item.mrn);
-  const createdAt= s(item.createdAt);
-  const claimedBy= s(item.claimedBy);
+  const taskId    = s(item.taskId);
+  const name      = s(item.name);
+  const bedNo     = s(item.bedNo);
+  const mrn       = s(item.mrn);
+  const createdAt = s(item.createdAt);
+  const claimedBy = s(item.claimedBy);
 
   card.innerHTML = `
     <div class="left">
@@ -146,7 +146,8 @@ function renderRow(item) {
       <div class="claimed">👤 接單者：${claimedBy}</div>
     </div>
     <div class="right">
-      <button class="btn" onclick="goReport('${taskId}')">
+      <button class="btn"
+        onclick="goReport('${taskId}', '${claimedBy}')">
         回報完成
       </button>
     </div>
@@ -157,8 +158,10 @@ function renderRow(item) {
 
 /* =========================
    跳轉到施打回報頁
+   ✅ 帶 taskId
+   ✅ 帶 operator（預設施打人）
 ========================= */
-function goReport(taskId) {
+function goReport(taskId, claimedBy) {
   if (!taskId) {
     alert("缺少 taskId，無法進入回報頁");
     return;
@@ -166,7 +169,8 @@ function goReport(taskId) {
 
   const url =
     "https://luckyseal0923.github.io/picc-report-ui/report.html"
-    + "?taskId=" + encodeURIComponent(taskId);
+    + "?taskId=" + encodeURIComponent(taskId)
+    + "&operator=" + encodeURIComponent(claimedBy || "");
 
   window.location.href = url;
 }
