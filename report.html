@@ -7,39 +7,126 @@
 
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", Arial, sans-serif;
       background: #f5f7fa;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 24px;
     }
+
     .card {
       background: #fff;
-      padding: 32px;
-      border-radius: 12px;
-      max-width: 420px;
+      padding: 28px;
+      border-radius: 14px;
       width: 100%;
+      max-width: 520px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 22px;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .row {
+      margin-bottom: 14px;
+    }
+
     label {
       display: block;
-      margin-top: 12px;
-      font-size: 14px;
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
-    input, button {
+
+    input, select, textarea {
       width: 100%;
-      margin-top: 6px;
-      padding: 10px;
+      box-sizing: border-box;
+      padding: 12px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
       font-size: 14px;
+      outline: none;
+      background: #fff;
     }
-    button {
-      margin-top: 20px;
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .taskbox {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px 0 18px;
+    }
+    .taskbox .k { font-size: 12px; color: #64748b; }
+    .taskbox .v { font-weight: 800; margin-top: 4px; word-break: break-all; }
+
+    .btn {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 15px;
       background: #2563eb;
       color: #fff;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .btn2 {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      opacity: .9;
+    }
+
+    .danger {
+      color: #b91c1c;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .ok {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #16a34a;
+      display: none;
     }
   </style>
 </head>
@@ -47,27 +134,120 @@
 <body>
   <div class="card">
     <h2>📌 PICC 施打回報</h2>
+    <div class="hint">
+      這頁會把回報資料送到 n8n，然後由 n8n 寫入 Google Sheet。<br/>
+      若沒有帶入 taskId，代表你是直接開這頁，請回到「待施打清單」再點進來。
+    </div>
 
-    <form method="POST"
-      action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit">
+    <div class="taskbox">
+      <div class="k">任務編號（taskId）</div>
+      <div class="v" id="taskIdText">—</div>
+    </div>
 
-      <label>任務編號</label>
-      <input name="taskId" id="taskId" readonly />
+    <!-- ✅ 最穩：用 FORM POST（避開 CORS） -->
+    <form id="reportForm" method="POST" action="https://chihwei.app.n8n.cloud/webhook/picc/report-done">
+      <!-- taskId：一定要送 -->
+      <input type="hidden" name="taskId" id="taskIdInput" />
 
-      <label>施打人</label>
-      <input name="operator" required />
+      <div class="grid2">
+        <div class="row">
+          <label for="operator">施打人（必填）</label>
+          <input id="operator" name="operator" placeholder="例：張志維 / NP A班" required />
+        </div>
 
-      <label>施打位置</label>
-      <input name="site" required />
+        <div class="row">
+          <label for="site">施打位置（必填）</label>
+          <select id="site" name="site" required>
+            <option value="">請選擇</option>
+            <option value="RUA">右上肢 RUA</option>
+            <option value="LUA">左上肢 LUA</option>
+            <option value="Other">其他</option>
+          </select>
+        </div>
+      </div>
 
-      <button type="submit">送出回報</button>
+      <div class="grid2">
+        <div class="row">
+          <label for="catheterLength">管路長度（cm）</label>
+          <input id="catheterLength" name="catheterLength" type="number" step="0.1" placeholder="例：42.5" />
+        </div>
+
+        <div class="row">
+          <label for="vein">血管（可選）</label>
+          <select id="vein" name="vein">
+            <option value="">不填</option>
+            <option value="Basilic">Basilic（貴要靜脈）</option>
+            <option value="Brachial">Brachial（肱靜脈）</option>
+            <option value="Cephalic">Cephalic（頭靜脈）</option>
+            <option value="Other">其他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="note">備註（可選）</label>
+        <textarea id="note" name="note" placeholder="例：一次成功/困難點/是否有併發症/是否拍片確認等"></textarea>
+      </div>
+
+      <!-- 你也可以讓 n8n 直接寫死狀態為 完成，不一定要送 -->
+      <input type="hidden" name="status" value="完成" />
+
+      <button class="btn" type="submit" id="submitBtn">送出回報</button>
+
+      <div class="danger" id="errBox">❌ 找不到 taskId，無法送出。請回到待施打清單點進來。</div>
+      <div class="ok" id="okBox">✅ 已送出（若 n8n 有設定回應頁，可在此顯示回應）。</div>
     </form>
+
+    <!-- 回到清單（可選） -->
+    <button class="btn2" type="button" id="backBtn">回到待施打清單</button>
   </div>
 
   <script>
-    const params = new URLSearchParams(location.search);
-    document.getElementById("taskId").value =
-      params.get("taskId") || "";
+    /* =========================
+       依你的實際清單頁 URL 調整
+    ========================= */
+    const PENDING_LIST_URL = "https://luckyseal0923.github.io/picc-report-ui/list.html";
+
+    /* =========================
+       讀取 taskId
+    ========================= */
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get("taskId");
+
+    const taskIdText = document.getElementById("taskIdText");
+    const taskIdInput = document.getElementById("taskIdInput");
+    const errBox = document.getElementById("errBox");
+    const submitBtn = document.getElementById("submitBtn");
+
+    taskIdText.textContent = taskId || "未帶入 taskId";
+    taskIdInput.value = taskId || "";
+
+    if (!taskId) {
+      errBox.style.display = "block";
+      submitBtn.disabled = true;
+    }
+
+    /* =========================
+       回到清單
+    ========================= */
+    document.getElementById("backBtn").onclick = () => {
+      window.location.href = PENDING_LIST_URL;
+    };
+
+    /* =========================
+       防呆：送出前再檢查一次
+    ========================= */
+    document.getElementById("reportForm").addEventListener("submit", (e) => {
+      if (!taskIdInput.value) {
+        e.preventDefault();
+        errBox.style.display = "block";
+        submitBtn.disabled = true;
+        return;
+      }
+      // 送出後可以先鎖住按鈕避免連點
+      submitBtn.disabled = true;
+      submitBtn.textContent = "送出中…";
+    });
   </script>
 </body>
 </html>
