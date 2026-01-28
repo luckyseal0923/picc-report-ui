@@ -13,7 +13,9 @@
       margin: 0;
       padding: 20px;
     }
-    h2 { margin: 0 0 14px; }
+    h2 {
+      margin: 0 0 14px;
+    }
     .hint {
       font-size: 13px;
       color: #666;
@@ -60,6 +62,7 @@
     .error { color: #c0392b; padding: 12px 4px; }
   </style>
 </head>
+
 <body>
 
 <h2>📋 PICC 待施打清單</h2>
@@ -100,10 +103,8 @@ async function loadList() {
   try {
     const res = await fetch(API_LIST);
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const rows = Array.isArray(data) ? data : [];
+    const rows = await res.json();
 
-    // 只顯示：待施打 + claimedBy 有值
     const filtered = rows.filter(r =>
       s(r.status).trim() === "待施打" && s(r.claimedBy)
     );
@@ -127,15 +128,15 @@ async function loadList() {
    單筆卡片
 ========================= */
 function renderRow(item) {
-  const card = document.createElement("div");
-  card.className = "card";
-
   const taskId    = s(item.taskId);
   const name      = s(item.name);
   const bedNo     = s(item.bedNo);
   const mrn       = s(item.mrn);
   const createdAt = s(item.createdAt);
   const claimedBy = s(item.claimedBy);
+
+  const card = document.createElement("div");
+  card.className = "card";
 
   card.innerHTML = `
     <div class="left">
@@ -147,7 +148,13 @@ function renderRow(item) {
     </div>
     <div class="right">
       <button class="btn"
-        onclick="goReport('${taskId}', '${claimedBy}')">
+        onclick="goReport(
+          '${taskId}',
+          '${name}',
+          '${bedNo}',
+          '${mrn}',
+          '${claimedBy}'
+        )">
         回報完成
       </button>
     </div>
@@ -158,19 +165,17 @@ function renderRow(item) {
 
 /* =========================
    跳轉到施打回報頁
-   ✅ 帶 taskId
-   ✅ 帶 operator（預設施打人）
+   👉 一次帶齊所有欄位
 ========================= */
-function goReport(taskId, claimedBy) {
-  if (!taskId) {
-    alert("缺少 taskId，無法進入回報頁");
-    return;
-  }
-
+function goReport(taskId, name, bedNo, mrn, claimedBy) {
   const url =
     "https://luckyseal0923.github.io/picc-report-ui/report.html"
-    + "?taskId=" + encodeURIComponent(taskId)
-    + "&operator=" + encodeURIComponent(claimedBy || "");
+    + "?taskId="    + encodeURIComponent(taskId)
+    + "&name="      + encodeURIComponent(name)
+    + "&bedNo="     + encodeURIComponent(bedNo)
+    + "&mrn="       + encodeURIComponent(mrn)
+    + "&operator="  + encodeURIComponent(claimedBy)
+    + "&claimedBy=" + encodeURIComponent(claimedBy);
 
   window.location.href = url;
 }
