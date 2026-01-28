@@ -13,14 +13,18 @@
       margin: 0;
       padding: 20px;
     }
+
     h2 {
       margin: 0 0 14px;
+      font-size: 22px;
     }
+
     .hint {
       font-size: 13px;
       color: #666;
       margin-bottom: 12px;
     }
+
     .card {
       background: #fff;
       border-radius: 10px;
@@ -32,22 +36,30 @@
       align-items: center;
       gap: 12px;
     }
-    .left { flex: 1; min-width: 0; }
+
+    .left {
+      flex: 1;
+      min-width: 0;
+    }
+
     .name {
       font-size: 18px;
       font-weight: 700;
       margin-bottom: 6px;
     }
+
     .meta {
       font-size: 14px;
       color: #666;
     }
+
     .claimed {
       margin-top: 8px;
       font-size: 14px;
       font-weight: 700;
       color: #c0392b;
     }
+
     .btn {
       padding: 8px 14px;
       border-radius: 8px;
@@ -58,14 +70,24 @@
       color: #fff;
       white-space: nowrap;
     }
-    .empty { color: #888; padding: 12px 4px; }
-    .error { color: #c0392b; padding: 12px 4px; }
+
+    .empty {
+      color: #888;
+      padding: 12px 4px;
+    }
+
+    .error {
+      color: #c0392b;
+      padding: 12px 4px;
+      font-weight: 700;
+    }
   </style>
 </head>
 
 <body>
 
 <h2>📋 PICC 待施打清單</h2>
+
 <div class="hint">
   僅顯示「已接單（待施打）」案件；點擊後進入施打回報頁。
 </div>
@@ -75,19 +97,20 @@
 
 <script>
 /* =========================
-   API：待施打清單
+   API：待施打清單（n8n Webhook）
 ========================= */
 const API_LIST =
   "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
 
 /* =========================
-   共用小工具
+   共用工具
 ========================= */
 function setMsg(type, text) {
   const el = document.getElementById("msg");
   el.className = type || "";
   el.textContent = text || "";
 }
+
 function s(v) {
   return (v === null || v === undefined) ? "" : String(v);
 }
@@ -103,8 +126,19 @@ async function loadList() {
   try {
     const res = await fetch(API_LIST);
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const rows = await res.json();
 
+    const data = await res.json();
+
+    // ✅ 關鍵修正：相容 n8n 回傳格式
+    // - 可能是 Array
+    // - 可能是 { data: [...] }
+    const rows = Array.isArray(data)
+      ? data
+      : Array.isArray(data.data)
+        ? data.data
+        : [];
+
+    // 只顯示：待施打 + 已有人接單
     const filtered = rows.filter(r =>
       s(r.status).trim() === "待施打" && s(r.claimedBy)
     );
@@ -128,6 +162,9 @@ async function loadList() {
    單筆卡片
 ========================= */
 function renderRow(item) {
+  const card = document.createElement("div");
+  card.className = "card";
+
   const taskId    = s(item.taskId);
   const name      = s(item.name);
   const bedNo     = s(item.bedNo);
@@ -135,12 +172,9 @@ function renderRow(item) {
   const createdAt = s(item.createdAt);
   const claimedBy = s(item.claimedBy);
 
-  const card = document.createElement("div");
-  card.className = "card";
-
   card.innerHTML = `
     <div class="left">
-      <div class="name">${name}</div>
+      <div class="name">${name || "（未填姓名）"}</div>
       <div class="meta">
         床號 ${bedNo} ｜ MRN ${mrn} ｜ ${createdAt}
       </div>
@@ -148,13 +182,7 @@ function renderRow(item) {
     </div>
     <div class="right">
       <button class="btn"
-        onclick="goReport(
-          '${taskId}',
-          '${name}',
-          '${bedNo}',
-          '${mrn}',
-          '${claimedBy}'
-        )">
+        onclick="goReport('${taskId}', '${claimedBy}')">
         回報完成
       </button>
     </div>
@@ -165,17 +193,19 @@ function renderRow(item) {
 
 /* =========================
    跳轉到施打回報頁
-   👉 一次帶齊所有欄位
+   ✅ 帶 taskId
+   ✅ 帶 operator（預設施打人）
 ========================= */
-function goReport(taskId, name, bedNo, mrn, claimedBy) {
+function goReport(taskId, claimedBy) {
+  if (!taskId) {
+    alert("缺少 taskId，無法進入回報頁");
+    return;
+  }
+
   const url =
     "https://luckyseal0923.github.io/picc-report-ui/report.html"
-    + "?taskId="    + encodeURIComponent(taskId)
-    + "&name="      + encodeURIComponent(name)
-    + "&bedNo="     + encodeURIComponent(bedNo)
-    + "&mrn="       + encodeURIComponent(mrn)
-    + "&operator="  + encodeURIComponent(claimedBy)
-    + "&claimedBy=" + encodeURIComponent(claimedBy);
+    + "?taskId=" + encodeURIComponent(taskId)
+    + "&operator=" + encodeURIComponent(claimedBy || "");
 
   window.location.href = url;
 }
