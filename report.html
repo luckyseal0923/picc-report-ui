@@ -29,15 +29,8 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
 
-    h2 {
-      margin: 0 0 16px;
-      font-size: 22px;
-    }
-
-    h3 {
-      margin: 0 0 12px;
-      font-size: 18px;
-    }
+    h2 { margin: 0 0 16px; font-size: 22px; }
+    h3 { margin: 0 0 12px; font-size: 18px; }
 
     .hint {
       font-size: 13px;
@@ -46,9 +39,7 @@
       line-height: 1.5;
     }
 
-    .row {
-      margin-bottom: 14px;
-    }
+    .row { margin-bottom: 14px; }
 
     label {
       display: block;
@@ -67,10 +58,7 @@
       box-sizing: border-box;
     }
 
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+    textarea { min-height: 90px; resize: vertical; }
 
     .grid2 {
       display: grid;
@@ -148,25 +136,54 @@
   </div>
 
   <!-- =========================
+       回報完成提示（預設隱藏）
+  ========================== -->
+  <div class="card" id="doneBox" style="display:none;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="font-size:28px;">✅</div>
+      <div style="flex:1;">
+        <div style="font-size:18px; font-weight:800; margin-bottom:4px;">
+          施打回報已完成
+        </div>
+        <div style="font-size:14px; color:#64748b;">
+          此案件已標記為完成，可返回待施打清單。
+        </div>
+      </div>
+      <button
+        type="button"
+        onclick="goBackToList()"
+        style="
+          padding:10px 14px;
+          border-radius:10px;
+          border:none;
+          background:#16a34a;
+          color:#fff;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        🔙 返回清單
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================
        施打回報表單
   ========================== -->
   <div class="card">
     <h3>📝 施打回報資料</h3>
 
-    <form method="POST" action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit">
-
-      <!-- 必要隱藏欄位 -->
+    <form
+      method="POST"
+      action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit?done=1"
+    >
       <input type="hidden" name="taskId" id="taskIdInput" />
       <input type="hidden" name="status" value="完成" />
 
       <div class="grid2">
         <div class="row">
           <label>施打人</label>
-          <input id="operator"
-                 type="text"
-                 name="operator"
-                 placeholder="請輸入施打人"
-                 required />
+          <input id="operator" type="text" name="operator" required />
         </div>
 
         <div class="row">
@@ -208,11 +225,7 @@
       <div class="grid2">
         <div class="row">
           <label>管路長度（cm）</label>
-          <input type="number"
-                 step="0.1"
-                 name="catheterLength"
-                 placeholder="請輸入長度"
-                 required />
+          <input type="number" step="0.1" name="catheterLength" required />
         </div>
 
         <div class="row">
@@ -250,16 +263,26 @@
   document.getElementById("taskIdText").value  = taskId || "未帶入";
   document.getElementById("taskIdInput").value = taskId || "";
 
-  document.getElementById("operator").value = operator;
-
-  document.getElementById("name").value      = name;
-  document.getElementById("bedNo").value     = bedNo;
-  document.getElementById("mrn").value       = mrn;
-  document.getElementById("claimedBy").value = claimedBy;
+  document.getElementById("operator").value   = operator;
+  document.getElementById("name").value       = name;
+  document.getElementById("bedNo").value      = bedNo;
+  document.getElementById("mrn").value        = mrn;
+  document.getElementById("claimedBy").value  = claimedBy;
 
   if (!taskId) {
     document.getElementById("errBox").style.display = "block";
     document.getElementById("submitBtn").disabled = true;
+  }
+
+  // 顯示完成提示
+  if (params.get("done") === "1") {
+    const box = document.getElementById("doneBox");
+    if (box) box.style.display = "block";
+  }
+
+  function goBackToList() {
+    window.location.href =
+      "https://luckyseal0923.github.io/picc-report-ui/list.html";
   }
 </script>
 
