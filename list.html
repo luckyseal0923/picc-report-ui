@@ -1,143 +1,227 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PICC 待施打清單</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
-      background: #f5f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Noto Sans TC", Arial, sans-serif;
+      background: #f6f7f9;
       margin: 0;
-      padding: 16px;
+      padding: 20px;
     }
 
-    h1 {
-      font-size: 18px;
+    h2 {
+      margin: 0 0 16px;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #666;
       margin-bottom: 12px;
     }
 
-    .list {
+    .card {
       background: #fff;
       border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-    }
-
-    .row {
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px;
-      border-bottom: 1px solid #eef2f7;
+      gap: 12px;
     }
 
-    .row:last-child {
-      border-bottom: none;
+    .left {
+      flex: 1;
+      min-width: 0;
     }
 
     .name {
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
     }
 
     .meta {
-      font-size: 13px;
-      color: #6b7280;
+      font-size: 14px;
+      color: #666;
     }
 
-    button {
-      padding: 6px 12px;
-      border-radius: 6px;
+    .claimed {
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #c0392b;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
       border: none;
-      font-size: 13px;
       cursor: pointer;
-    }
-
-    .done {
+      font-size: 14px;
       background: #2563eb;
       color: #fff;
+      white-space: nowrap;
     }
 
-    .disabled {
-      background: #e5e7eb;
-      color: #9ca3af;
+    .btn:disabled {
+      background: #9ca3af;
       cursor: not-allowed;
     }
 
+    .empty {
+      color: #888;
+      padding: 12px 4px;
+    }
+
     .error {
-      margin-top: 12px;
-      color: #dc2626;
+      color: #c0392b;
+      padding: 12px 4px;
     }
   </style>
 </head>
 <body>
 
-  <h1>📋 目前待施打 PICC 清單</h1>
-  <div id="list" class="list"></div>
-  <div id="error" class="error"></div>
+<h2>📋 PICC 待施打清單</h2>
+<div class="hint">
+  僅顯示「已接單（待施打）」的案件；完成回報後將自動從清單移除。
+</div>
 
-  <script>
-    const API_LIST =
-      "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+<div id="msg"></div>
+<div id="list"></div>
 
-    const API_REPORT =
-      "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
+<script>
+/* =========================
+   API 設定
+========================= */
+const API_LIST   = "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+const API_REPORT = "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
 
-    async function loadList() {
-      try {
-        const res = await fetch(API_LIST);
-        const data = await res.json();
+/* =========================
+   小工具
+========================= */
+function setMsg(type, text) {
+  const el = document.getElementById("msg");
+  el.className = type || "";
+  el.textContent = text || "";
+}
 
-        const listEl = document.getElementById("list");
-        listEl.innerHTML = "";
+function s(v) {
+  return (v === null || v === undefined) ? "" : String(v);
+}
 
-        data.forEach(item => {
-          const row = document.createElement("div");
-          row.className = "row";
+/* =========================
+   載入清單
+========================= */
+async function loadList() {
+  setMsg("", "");
+  const listEl = document.getElementById("list");
+  listEl.innerHTML = "";
 
-          row.innerHTML = `
-            <div>
-              <div class="name">${item.name}</div>
-              <div class="meta">
-                床號 ${item.bedNo} ｜ MRN ${item.mrn} ｜ ${item.createdAt}
-              </div>
-            </div>
-            ${
-              item.canClick
-                ? `<button class="done" onclick="reportDone('${item.taskId}')">回報完成</button>`
-                : `<button class="disabled" disabled>已回報</button>`
-            }
-          `;
+  try {
+    const res = await fetch(API_LIST, { method: "GET" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
 
-          listEl.appendChild(row);
-        });
-      } catch (err) {
-        document.getElementById("error").innerText =
-          "❌ 無法載入待施打清單";
-      }
+    const data = await res.json();
+    const rows = Array.isArray(data) ? data : [];
+
+    // ✅ 保險起見，前端再濾一次：
+    // 只顯示 status = 待施打
+    const filtered = rows.filter(r => s(r.status).trim() === "待施打");
+
+    if (filtered.length === 0) {
+      setMsg("empty", "目前沒有待施打的 PICC。");
+      return;
     }
 
-    async function reportDone(taskId) {
-      try {
-        const res = await fetch(API_REPORT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taskId })
-        });
+    filtered.forEach(item => {
+      listEl.appendChild(renderRow(item));
+    });
 
-        if (!res.ok) throw new Error("fail");
+  } catch (err) {
+    console.error(err);
+    setMsg("error", "❌ 無法載入待施打清單，請確認 pending-list API 是否正常");
+  }
+}
 
-        alert("✅ 回報成功");
-        loadList();
-      } catch (e) {
-        alert("❌ 回報失敗，請稍後再試");
-      }
-    }
+/* =========================
+   單列渲染
+========================= */
+function renderRow(item) {
+  const card = document.createElement("div");
+  card.className = "card";
 
-    loadList();
-  </script>
+  const name = s(item.name);
+  const bedNo = s(item.bedNo);
+  const mrn = s(item.mrn);
+  const createdAt = s(item.createdAt);
+  const claimedBy = s(item.claimedBy);
+  const taskId = s(item.taskId);
+
+  card.innerHTML = `
+    <div class="left">
+      <div class="name">${name}</div>
+      <div class="meta">
+        床號 ${bedNo} ｜ MRN ${mrn} ｜ ${createdAt}
+      </div>
+      <div class="claimed">👤 接單者：${claimedBy}</div>
+    </div>
+    <div class="right">
+      <button class="btn" data-taskid="${taskId}">回報完成</button>
+    </div>
+  `;
+
+  const btn = card.querySelector("button");
+  btn.addEventListener("click", () => reportDone(taskId, btn));
+
+  return card;
+}
+
+/* =========================
+   回報完成
+========================= */
+async function reportDone(taskId, btn) {
+  if (!taskId) {
+    alert("缺少 taskId，無法回報");
+    return;
+  }
+  if (!confirm("確認已完成 PICC 施打並回報？")) return;
+
+  btn.disabled = true;
+  btn.textContent = "回報中…";
+
+  try {
+    const res = await fetch(API_REPORT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskId })
+    });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    // ✅ 回報成功 → 重新載入
+    await loadList();
+    alert("✅ 回報成功，已記錄完成時間");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ 回報失敗，請稍後再試");
+    btn.disabled = false;
+    btn.textContent = "回報完成";
+  }
+}
+
+/* =========================
+   啟動
+========================= */
+loadList();
+</script>
 
 </body>
 </html>
