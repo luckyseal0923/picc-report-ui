@@ -19,25 +19,27 @@
       background: #fff;
       padding: 32px;
       border-radius: 12px;
-      width: 100%;
       max-width: 420px;
+      width: 100%;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      text-align: center;
     }
-    .task {
-      margin: 16px 0;
-      font-weight: bold;
-      word-break: break-all;
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px;
+      font-size: 14px;
     }
     button {
-      width: 100%;
-      padding: 16px;
-      font-size: 16px;
+      margin-top: 20px;
       background: #2563eb;
-      color: white;
+      color: #fff;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -46,18 +48,26 @@
   <div class="card">
     <h2>📌 PICC 施打回報</h2>
 
-    <div>任務編號（taskId）</div>
-    <div class="task" id="taskIdText">—</div>
+    <form method="POST"
+      action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit">
 
-    <button onclick="submitReport()">確認完成施打</button>
+      <label>任務編號</label>
+      <input name="taskId" id="taskId" readonly />
+
+      <label>施打人</label>
+      <input name="operator" required />
+
+      <label>施打位置</label>
+      <input name="site" required />
+
+      <button type="submit">送出回報</button>
+    </form>
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const taskId = params.get("taskId");
-
-    document.getElementById("taskIdText").innerText =
-      taskId || "未帶入 taskId";
-
-    function submitReport() {
-      if (!t
+    const params = new URLSearchParams(location.search);
+    document.getElementById("taskId").value =
+      params.get("taskId") || "";
+  </script>
+</body>
+</html>
