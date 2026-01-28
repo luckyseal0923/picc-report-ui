@@ -3,108 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <title>PICC 施打回報</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     body {
-      margin: 0;
-      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
       background: #f5f7fb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-        "PingFang TC", "Microsoft JhengHei", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-
     .card {
-      max-width: 420px;
-      margin: 80px auto;
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
     }
-
-    h1 {
-      font-size: 20px;
-      margin: 0 0 16px 0;
-    }
-
-    .task {
-      margin-bottom: 24px;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    .btn {
+    button {
+      margin-top: 24px;
       width: 100%;
       padding: 14px;
       font-size: 16px;
-      border-radius: 10px;
       border: none;
+      border-radius: 8px;
       background: #2563eb;
-      color: #fff;
+      color: white;
       cursor: pointer;
     }
-
-    .btn:disabled {
+    button:disabled {
       background: #9ca3af;
       cursor: not-allowed;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>📌 PICC 施打回報</h1>
 
-    <div class="task">
-      任務編號（taskId）<br />
-      <strong id="taskIdText">讀取中…</strong>
-    </div>
+<div class="card">
+  <h2>📌 PICC 施打回報</h2>
+  <p>任務編號（taskId）</p>
+  <p id="taskId" style="font-weight:bold;"></p>
 
-    <button class="btn" id="submitBtn" onclick="submitReport()">
-      確認完成施打
-    </button>
-  </div>
+  <button id="submitBtn">確認完成施打</button>
+</div>
 
-  <script>
-    // 1️⃣ 取得 taskId
-    const params = new URLSearchParams(window.location.search);
-    const taskId = params.get("taskId");
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const taskId = params.get("taskId");
+  document.getElementById("taskId").innerText = taskId || "（未提供）";
 
-    const taskText = document.getElementById("taskIdText");
-    const btn = document.getElementById("submitBtn");
-
+  async function submitReport() {
     if (!taskId) {
-      taskText.textContent = "❌ 未提供 taskId";
-      btn.disabled = true;
-    } else {
-      taskText.textContent = taskId;
+      alert("缺少 taskId");
+      return;
     }
 
-    // 2️⃣ 送出回報（GET，避免 CORS）
-    async function submitReport() {
-      if (!taskId) return;
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerText = "送出中…";
 
-      btn.disabled = true;
-      btn.textContent = "送出中…";
-
+    try {
       const url =
-        "https://chiwei.app.n8n.cloud/webhook/picc/report-done" +
-        "?taskId=" +
-        encodeURIComponent(taskId);
+        "https://chiwhei.app.n8n.cloud/webhook/picc/report-done"
+        + "?taskId=" + encodeURIComponent(taskId);
 
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status);
+      const res = await fetch(url, { method: "GET" });
+      const text = await res.text();
 
-        alert("✅ 回報成功，已完成施打");
-        // 之後可以加：window.location.href = "list.html";
-      } catch (err) {
-        console.error(err);
-        alert("❌ 回報失敗，請再試一次");
-        btn.disabled = false;
-        btn.textContent = "確認完成施打";
-      }
+      console.log("n8n response:", text);
+      alert("✅ 回報成功，可以關閉頁面");
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ 回報失敗，請再試一次");
+      btn.disabled = false;
+      btn.innerText = "確認完成施打";
     }
-  </script>
+  }
+
+  document.getElementById("submitBtn").onclick = submitReport;
+</script>
+
 </body>
 </html>
