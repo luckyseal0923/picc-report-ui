@@ -3,51 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <title>PICC 施打回報</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      background: #f5f7fa;
       margin: 0;
-      padding: 24px;
+      padding: 0;
+      background: #f5f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang TC", "Microsoft JhengHei", sans-serif;
     }
+
     .card {
-      max-width: 480px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      max-width: 420px;
+      margin: 80px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
+
     h1 {
       font-size: 20px;
-      margin-bottom: 16px;
+      margin: 0 0 16px 0;
     }
-    .field {
-      margin-bottom: 16px;
+
+    .task {
+      margin-bottom: 24px;
+      color: #333;
+      line-height: 1.6;
     }
-    .label {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 4px;
-    }
-    .value {
-      font-size: 15px;
-      font-weight: 600;
-      word-break: break-all;
-    }
-    button {
+
+    .btn {
       width: 100%;
       padding: 14px;
       font-size: 16px;
-      border: none;
       border-radius: 10px;
+      border: none;
       background: #2563eb;
       color: #fff;
       cursor: pointer;
     }
-    button:disabled {
+
+    .btn:disabled {
       background: #9ca3af;
       cursor: not-allowed;
     }
@@ -57,78 +55,56 @@
   <div class="card">
     <h1>📌 PICC 施打回報</h1>
 
-    <div class="field">
-      <div class="label">任務編號（taskId）</div>
-      <div class="value" id="taskIdText">-</div>
+    <div class="task">
+      任務編號（taskId）<br />
+      <strong id="taskIdText">讀取中…</strong>
     </div>
 
-    <button id="submitBtn">確認完成施打</button>
+    <button class="btn" id="submitBtn" onclick="submitReport()">
+      確認完成施打
+    </button>
   </div>
 
   <script>
-    // 取得 taskId
+    // 1️⃣ 取得 taskId
     const params = new URLSearchParams(window.location.search);
     const taskId = params.get("taskId");
 
-    const taskIdText = document.getElementById("taskIdText");
-    const submitBtn = document.getElementById("submitBtn");
+    const taskText = document.getElementById("taskIdText");
+    const btn = document.getElementById("submitBtn");
 
     if (!taskId) {
-      taskIdText.textContent = "❌ 找不到 taskId";
-      submitBtn.disabled = true;
+      taskText.textContent = "❌ 未提供 taskId";
+      btn.disabled = true;
     } else {
-      taskIdText.textContent = taskId;
+      taskText.textContent = taskId;
     }
 
-    // 產生 YYYY-MM-DD HH:mm
-    function formatDateTime() {
-      const d = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      return (
-        d.getFullYear() +
-        "-" +
-        pad(d.getMonth() + 1) +
-        "-" +
-        pad(d.getDate()) +
-        " " +
-        pad(d.getHours()) +
-        ":" +
-        pad(d.getMinutes())
-      );
-    }
+    // 2️⃣ 送出回報（GET，避免 CORS）
+    async function submitReport() {
+      if (!taskId) return;
 
-    submitBtn.addEventListener("click", async () => {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "送出中…";
+      btn.disabled = true;
+      btn.textContent = "送出中…";
 
-      const payload = {
-        taskId,
-        status: "已完成",
-        completedAt: formatDateTime()
-      };
+      const url =
+        "https://chiwei.app.n8n.cloud/webhook/picc/report-done" +
+        "?taskId=" +
+        encodeURIComponent(taskId);
 
       try {
-        const res = await fetch(
-          "https://chiwei.app.n8n.cloud/webhook/picc/report-done",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-          }
-        );
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
 
-        if (!res.ok) throw new Error("API failed");
-
-        // 成功 → 回清單
-        window.location.href = "./list.html";
+        alert("✅ 回報成功，已完成施打");
+        // 之後可以加：window.location.href = "list.html";
       } catch (err) {
-        alert("回報失敗，請稍後再試");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "確認完成施打";
+        console.error(err);
+        alert("❌ 回報失敗，請再試一次");
+        btn.disabled = false;
+        btn.textContent = "確認完成施打";
       }
-    });
+    }
   </script>
 </body>
 </html>
