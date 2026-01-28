@@ -13,92 +13,37 @@
       margin: 0;
       padding: 20px;
     }
-
-    h2 {
-      margin: 0 0 16px;
-    }
-
-    .hint {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 12px;
-    }
-
+    h2 { margin: 0 0 14px; }
+    .hint { font-size: 13px; color: #666; margin-bottom: 12px; }
     .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      background:#fff; border-radius:10px; padding:16px; margin-bottom:12px;
+      box-shadow:0 1px 4px rgba(0,0,0,0.08);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
     }
-
-    .left {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .meta {
-      font-size: 14px;
-      color: #666;
-    }
-
-    .claimed {
-      margin-top: 8px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #c0392b;
-    }
-
+    .left { flex:1; min-width:0; }
+    .name { font-size:18px; font-weight:700; margin-bottom:6px; }
+    .meta { font-size:14px; color:#666; }
+    .claimed { margin-top:8px; font-size:14px; font-weight:700; color:#c0392b; }
     .btn {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      background: #2563eb;
-      color: #fff;
-      white-space: nowrap;
+      padding:8px 14px; border-radius:8px; border:none; cursor:pointer;
+      font-size:14px; background:#2563eb; color:#fff; white-space:nowrap;
     }
-
-    .btn:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .empty {
-      color: #888;
-      padding: 12px 4px;
-    }
-
-    .error {
-      color: #c0392b;
-      padding: 12px 4px;
-    }
+    .btn:disabled { background:#9ca3af; cursor:not-allowed; }
+    .empty { color:#888; padding:12px 4px; }
+    .error { color:#c0392b; padding:12px 4px; }
   </style>
 </head>
 <body>
 
 <h2>📋 PICC 待施打清單</h2>
-<div class="hint">
-  僅顯示「已接單（待施打）」的案件；完成回報後將自動從清單移除。
-</div>
+<div class="hint">僅顯示「已接單（待施打）」的案件；完成回報後將自動從清單移除。</div>
 
 <div id="msg"></div>
 <div id="list"></div>
 
 <script>
 /* =========================
-   API 設定
+   API 設定（請確認是 Production URL）
 ========================= */
 const API_LIST   = "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
 const API_REPORT = "https://chihwei.app.n8n.cloud/webhook/picc/report-done";
@@ -111,10 +56,7 @@ function setMsg(type, text) {
   el.className = type || "";
   el.textContent = text || "";
 }
-
-function s(v) {
-  return (v === null || v === undefined) ? "" : String(v);
-}
+function s(v){ return (v===null||v===undefined) ? "" : String(v); }
 
 /* =========================
    載入清單
@@ -125,14 +67,12 @@ async function loadList() {
   listEl.innerHTML = "";
 
   try {
-    const res = await fetch(API_LIST, { method: "GET" });
+    const res = await fetch(API_LIST);
     if (!res.ok) throw new Error("HTTP " + res.status);
-
     const data = await res.json();
     const rows = Array.isArray(data) ? data : [];
 
-    // ✅ 保險起見，前端再濾一次：
-    // 只顯示 status = 待施打
+    // 只顯示 status = 待施打（保險再濾一次）
     const filtered = rows.filter(r => s(r.status).trim() === "待施打");
 
     if (filtered.length === 0) {
@@ -140,10 +80,7 @@ async function loadList() {
       return;
     }
 
-    filtered.forEach(item => {
-      listEl.appendChild(renderRow(item));
-    });
-
+    filtered.forEach(item => listEl.appendChild(renderRow(item)));
   } catch (err) {
     console.error(err);
     setMsg("error", "❌ 無法載入待施打清單，請確認 pending-list API 是否正常");
@@ -167,9 +104,7 @@ function renderRow(item) {
   card.innerHTML = `
     <div class="left">
       <div class="name">${name}</div>
-      <div class="meta">
-        床號 ${bedNo} ｜ MRN ${mrn} ｜ ${createdAt}
-      </div>
+      <div class="meta">床號 ${bedNo} ｜ MRN ${mrn} ｜ ${createdAt}</div>
       <div class="claimed">👤 接單者：${claimedBy}</div>
     </div>
     <div class="right">
@@ -179,7 +114,6 @@ function renderRow(item) {
 
   const btn = card.querySelector("button");
   btn.addEventListener("click", () => reportDone(taskId, btn));
-
   return card;
 }
 
@@ -187,10 +121,7 @@ function renderRow(item) {
    回報完成
 ========================= */
 async function reportDone(taskId, btn) {
-  if (!taskId) {
-    alert("缺少 taskId，無法回報");
-    return;
-  }
+  if (!taskId) { alert("缺少 taskId，無法回報"); return; }
   if (!confirm("確認已完成 PICC 施打並回報？")) return;
 
   btn.disabled = true;
@@ -202,13 +133,11 @@ async function reportDone(taskId, btn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskId })
     });
-
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    // ✅ 回報成功 → 重新載入
+    // 成功 → 重新載入（因為 status 變已完成，會自動消失）
     await loadList();
     alert("✅ 回報成功，已記錄完成時間");
-
   } catch (err) {
     console.error(err);
     alert("❌ 回報失敗，請稍後再試");
