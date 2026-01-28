@@ -46,10 +46,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    button:disabled {
-      background: #94a3b8;
-    }
   </style>
 </head>
 
@@ -60,29 +56,25 @@
     <div>任務編號（taskId）</div>
     <div class="task" id="taskIdText">—</div>
 
-    <button onclick="submitReport()">確認完成施打</button>
+    <!-- ⭐ 關鍵：用 FORM POST -->
+    <form
+      id="reportForm"
+      method="POST"
+      action="https://chiwei.app.n8n.cloud/webhook/picc/report-done"
+    >
+      <input type="hidden" name="taskId" id="taskIdInput" />
+      <button type="submit">確認完成施打</button>
+    </form>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const taskId = params.get("taskId");
 
-    document.getElementById("taskIdText").innerText = taskId || "未帶入 taskId";
+    document.getElementById("taskIdText").innerText =
+      taskId || "未帶入 taskId";
 
-    function submitReport() {
-      if (!taskId) {
-        alert("❌ 找不到 taskId");
-        return;
-      }
-
-      // ⭐ 關鍵：用「瀏覽器跳轉」而不是 fetch
-      const webhookUrl =
-        "https://chiwei.app.n8n.cloud/webhook/picc/report-done"
-        + "?taskId=" + encodeURIComponent(taskId);
-
-      // 直接跳轉 → n8n 一定收得到
-      window.location.href = webhookUrl;
-    }
+    document.getElementById("taskIdInput").value = taskId || "";
   </script>
 </body>
 </html>
