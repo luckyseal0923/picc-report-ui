@@ -13,12 +13,17 @@
       margin: 0;
       padding: 20px;
     }
-    h2 { margin: 0 0 14px; }
+
+    h2 {
+      margin: 0 0 12px;
+    }
+
     .hint {
       font-size: 13px;
-      color: #666;
+      color: #555;
       margin-bottom: 12px;
     }
+
     .card {
       background: #fff;
       border-radius: 10px;
@@ -30,22 +35,30 @@
       align-items: center;
       gap: 12px;
     }
-    .left { flex: 1; min-width: 0; }
+
+    .left {
+      flex: 1;
+      min-width: 0;
+    }
+
     .name {
       font-size: 18px;
       font-weight: 700;
       margin-bottom: 6px;
     }
+
     .meta {
       font-size: 14px;
       color: #666;
     }
+
     .claimed {
-      margin-top: 8px;
+      margin-top: 6px;
       font-size: 14px;
       font-weight: 700;
       color: #c0392b;
     }
+
     .btn {
       padding: 8px 14px;
       border-radius: 8px;
@@ -56,10 +69,20 @@
       color: #fff;
       white-space: nowrap;
     }
-    .empty { color: #888; padding: 12px 4px; }
-    .error { color: #c0392b; padding: 12px 4px; }
+
+    .empty {
+      color: #777;
+      padding: 12px 4px;
+    }
+
+    .error {
+      color: #c0392b;
+      padding: 12px 4px;
+      font-weight: 700;
+    }
   </style>
 </head>
+
 <body>
 
 <h2>📋 PICC 待施打清單</h2>
@@ -72,21 +95,26 @@
 
 <script>
 /* =========================
-   API：待施打清單
+   API 設定
 ========================= */
 const API_LIST =
   "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
 
 /* =========================
-   共用小工具
+   工具
 ========================= */
+function $(id) {
+  return document.getElementById(id);
+}
+
+function safe(v) {
+  return v === null || v === undefined ? "" : String(v);
+}
+
 function setMsg(type, text) {
-  const el = document.getElementById("msg");
+  const el = $("msg");
   el.className = type || "";
   el.textContent = text || "";
-}
-function s(v) {
-  return (v === null || v === undefined) ? "" : String(v);
 }
 
 /* =========================
@@ -94,27 +122,31 @@ function s(v) {
 ========================= */
 async function loadList() {
   setMsg("", "");
-  const listEl = document.getElementById("list");
-  listEl.innerHTML = "";
+  $("list").innerHTML = "";
 
   try {
     const res = await fetch(API_LIST);
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const rows = Array.isArray(data) ? data : [];
 
-    // 只顯示：待施打 + claimedBy 有值
-    const filtered = rows.filter(r =>
-      s(r.status).trim() === "待施打" && s(r.claimedBy)
+    const data = await res.json();
+    console.log("pending-list response =", data);
+
+    if (!Array.isArray(data)) {
+      throw new Error("API 回傳不是陣列");
+    }
+
+    // 只顯示：待施打 + 已接單
+    const rows = data.filter(r =>
+      safe(r.status) === "待施打" && safe(r.claimedBy)
     );
 
-    if (filtered.length === 0) {
+    if (rows.length === 0) {
       setMsg("empty", "目前沒有待施打的 PICC。");
       return;
     }
 
-    filtered.forEach(item => {
-      listEl.appendChild(renderRow(item));
+    rows.forEach(item => {
+      $("list").appendChild(renderCard(item));
     });
 
   } catch (err) {
@@ -126,26 +158,26 @@ async function loadList() {
 /* =========================
    單筆卡片
 ========================= */
-function renderRow(item) {
+function renderCard(item) {
   const card = document.createElement("div");
   card.className = "card";
 
-  const taskId    = s(item.taskId);
-  const name      = s(item.name);
-  const bedNo     = s(item.bedNo);
-  const mrn       = s(item.mrn);
-  const createdAt = s(item.createdAt);
-  const claimedBy = s(item.claimedBy);
+  const taskId    = safe(item.taskId);
+  const name      = safe(item.name);
+  const bedNo     = safe(item.bedNo);
+  const mrn       = safe(item.mrn);
+  const createdAt = safe(item.createdAt);
+  const claimedBy = safe(item.claimedBy);
 
   card.innerHTML = `
     <div class="left">
-      <div class="name">${name}</div>
+      <div class="name">${name || "（未填姓名）"}</div>
       <div class="meta">
         床號 ${bedNo} ｜ MRN ${mrn} ｜ ${createdAt}
       </div>
       <div class="claimed">👤 接單者：${claimedBy}</div>
     </div>
-    <div class="right">
+    <div>
       <button class="btn"
         onclick="goReport('${taskId}', '${claimedBy}')">
         回報完成
@@ -157,11 +189,9 @@ function renderRow(item) {
 }
 
 /* =========================
-   跳轉到施打回報頁
-   ✅ 帶 taskId
-   ✅ 帶 operator（預設施打人）
+   前往回報頁
 ========================= */
-function goReport(taskId, claimedBy) {
+function goReport(taskId, operator) {
   if (!taskId) {
     alert("缺少 taskId，無法進入回報頁");
     return;
@@ -170,7 +200,7 @@ function goReport(taskId, claimedBy) {
   const url =
     "https://luckyseal0923.github.io/picc-report-ui/report.html"
     + "?taskId=" + encodeURIComponent(taskId)
-    + "&operator=" + encodeURIComponent(claimedBy || "");
+    + "&operator=" + encodeURIComponent(operator || "");
 
   window.location.href = url;
 }
