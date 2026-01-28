@@ -9,21 +9,23 @@
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", Arial, sans-serif;
       background: #f5f7fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       margin: 0;
       padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
     }
 
     .card {
       background: #fff;
-      padding: 28px;
       border-radius: 14px;
-      width: 100%;
-      max-width: 520px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
 
     h2 {
@@ -31,10 +33,15 @@
       font-size: 22px;
     }
 
+    h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
     .hint {
       font-size: 13px;
       color: #64748b;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       line-height: 1.5;
     }
 
@@ -45,25 +52,18 @@
     label {
       display: block;
       font-size: 13px;
-      color: #334155;
+      font-weight: 700;
       margin-bottom: 6px;
-      font-weight: 600;
+      color: #334155;
     }
 
     input, select, textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 12px 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
+      padding: 12px;
       font-size: 14px;
-      outline: none;
-      background: #fff;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-sizing: border-box;
     }
 
     textarea {
@@ -77,42 +77,26 @@
       gap: 12px;
     }
 
-    .taskbox {
+    .readonly {
       background: #f1f5f9;
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 12px 0 18px;
+      font-weight: 700;
     }
-    .taskbox .k { font-size: 12px; color: #64748b; }
-    .taskbox .v { font-weight: 800; margin-top: 4px; word-break: break-all; }
 
     .btn {
       width: 100%;
-      padding: 14px 16px;
-      font-size: 15px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
       background: #2563eb;
       color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
     }
 
-    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
-
-    .btn2 {
-      width: 100%;
-      margin-top: 10px;
-      padding: 12px 16px;
-      font-size: 14px;
-      background: #0f172a;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      opacity: .9;
+    .btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
 
     .danger {
@@ -121,133 +105,142 @@
       margin-top: 10px;
       display: none;
     }
-
-    .ok {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #16a34a;
-      display: none;
-    }
   </style>
 </head>
 
 <body>
+<div class="container">
+
+  <!-- =========================
+       任務資訊（readonly）
+  ========================== -->
   <div class="card">
     <h2>📌 PICC 施打回報</h2>
-    <div class="hint">
-      這頁會把回報資料送到 n8n，然後由 n8n 寫入 Google Sheet。<br/>
-      若沒有帶入 taskId，代表你是直接開這頁，請回到「待施打清單」再點進來。
+    <div class="hint">以下任務資訊由系統帶入，僅供確認，無法修改。</div>
+
+    <div class="row">
+      <label>任務編號（taskId）</label>
+      <input class="readonly" id="taskIdText" readonly />
     </div>
 
-    <div class="taskbox">
-      <div class="k">任務編號（taskId）</div>
-      <div class="v" id="taskIdText">—</div>
+    <div class="grid2">
+      <div class="row">
+        <label>病人姓名</label>
+        <input class="readonly" id="name" readonly />
+      </div>
+      <div class="row">
+        <label>床號</label>
+        <input class="readonly" id="bedNo" readonly />
+      </div>
     </div>
 
-    <!-- ✅ 最穩：用 FORM POST（避開 CORS） -->
-    <form id="reportForm" method="POST" action="https://chihwei.app.n8n.cloud/webhook/picc/report-done">
-      <!-- taskId：一定要送 -->
+    <div class="grid2">
+      <div class="row">
+        <label>MRN</label>
+        <input class="readonly" id="mrn" readonly />
+      </div>
+      <div class="row">
+        <label>接單者</label>
+        <input class="readonly" id="claimedBy" readonly />
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       施打回報表單
+  ========================== -->
+  <div class="card">
+    <h3>📝 施打回報資料</h3>
+
+    <form method="POST" action="https://chihwei.app.n8n.cloud/webhook/picc/report-done">
+
+      <!-- 必要隱藏欄位 -->
       <input type="hidden" name="taskId" id="taskIdInput" />
 
       <div class="grid2">
         <div class="row">
-          <label for="operator">施打人（必填）</label>
-          <input id="operator" name="operator" placeholder="例：張志維 / NP A班" required />
+          <label>施打人</label>
+          <input type="text" name="operator" placeholder="請輸入施打人" required />
         </div>
 
         <div class="row">
-          <label for="site">施打位置（必填）</label>
-          <select id="site" name="site" required>
+          <label>放置困難度</label>
+          <select name="difficulty" required>
             <option value="">請選擇</option>
-            <option value="RUA">右上肢 RUA</option>
-            <option value="LUA">左上肢 LUA</option>
-            <option value="Other">其他</option>
+            <option>非常簡單</option>
+            <option>簡單</option>
+            <option>中等</option>
+            <option>困難</option>
+            <option>非常困難</option>
           </select>
         </div>
       </div>
 
       <div class="grid2">
         <div class="row">
-          <label for="catheterLength">管路長度（cm）</label>
-          <input id="catheterLength" name="catheterLength" type="number" step="0.1" placeholder="例：42.5" />
+          <label>施打位置</label>
+          <select name="insertionSite" required>
+            <option value="">請選擇</option>
+            <option>右上臂</option>
+            <option>左上臂</option>
+            <option>其他</option>
+          </select>
         </div>
 
         <div class="row">
-          <label for="vein">血管（可選）</label>
-          <select id="vein" name="vein">
-            <option value="">不填</option>
-            <option value="Basilic">Basilic（貴要靜脈）</option>
-            <option value="Brachial">Brachial（肱靜脈）</option>
-            <option value="Cephalic">Cephalic（頭靜脈）</option>
-            <option value="Other">其他</option>
+          <label>血管</label>
+          <select name="vein">
+            <option value="">未填</option>
+            <option>Basilic</option>
+            <option>Cephalic</option>
+            <option>Brachial</option>
+            <option>其他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="row">
+          <label>管路長度（cm）</label>
+          <input type="number" step="0.1" name="catheterLength" />
+        </div>
+
+        <div class="row">
+          <label>管路類型</label>
+          <select name="catheterType">
+            <option>單腔 PICC</option>
+            <option>雙腔 PICC</option>
           </select>
         </div>
       </div>
 
       <div class="row">
-        <label for="note">備註（可選）</label>
-        <textarea id="note" name="note" placeholder="例：一次成功/困難點/是否有併發症/是否拍片確認等"></textarea>
+        <label>備註</label>
+        <textarea name="remark" placeholder="補充說明（可不填）"></textarea>
       </div>
 
-      <!-- 你也可以讓 n8n 直接寫死狀態為 完成，不一定要送 -->
+      <!-- 狀態固定 -->
       <input type="hidden" name="status" value="完成" />
 
-      <button class="btn" type="submit" id="submitBtn">送出回報</button>
-
-      <div class="danger" id="errBox">❌ 找不到 taskId，無法送出。請回到待施打清單點進來。</div>
-      <div class="ok" id="okBox">✅ 已送出（若 n8n 有設定回應頁，可在此顯示回應）。</div>
+      <button class="btn" type="submit" id="submitBtn">送出施打回報</button>
+      <div class="danger" id="errBox">❌ 找不到 taskId，請由待施打清單進入。</div>
     </form>
-
-    <!-- 回到清單（可選） -->
-    <button class="btn2" type="button" id="backBtn">回到待施打清單</button>
   </div>
 
-  <script>
-    /* =========================
-       依你的實際清單頁 URL 調整
-    ========================= */
-    const PENDING_LIST_URL = "https://luckyseal0923.github.io/picc-report-ui/list.html";
+</div>
 
-    /* =========================
-       讀取 taskId
-    ========================= */
-    const params = new URLSearchParams(window.location.search);
-    const taskId = params.get("taskId");
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const taskId = params.get("taskId");
 
-    const taskIdText = document.getElementById("taskIdText");
-    const taskIdInput = document.getElementById("taskIdInput");
-    const errBox = document.getElementById("errBox");
-    const submitBtn = document.getElementById("submitBtn");
+  document.getElementById("taskIdText").value = taskId || "未帶入";
+  document.getElementById("taskIdInput").value = taskId || "";
 
-    taskIdText.textContent = taskId || "未帶入 taskId";
-    taskIdInput.value = taskId || "";
+  if (!taskId) {
+    document.getElementById("errBox").style.display = "block";
+    document.getElementById("submitBtn").disabled = true;
+  }
+</script>
 
-    if (!taskId) {
-      errBox.style.display = "block";
-      submitBtn.disabled = true;
-    }
-
-    /* =========================
-       回到清單
-    ========================= */
-    document.getElementById("backBtn").onclick = () => {
-      window.location.href = PENDING_LIST_URL;
-    };
-
-    /* =========================
-       防呆：送出前再檢查一次
-    ========================= */
-    document.getElementById("reportForm").addEventListener("submit", (e) => {
-      if (!taskIdInput.value) {
-        e.preventDefault();
-        errBox.style.display = "block";
-        submitBtn.disabled = true;
-        return;
-      }
-      // 送出後可以先鎖住按鈕避免連點
-      submitBtn.disabled = true;
-      submitBtn.textContent = "送出中…";
-    });
-  </script>
 </body>
 </html>
