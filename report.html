@@ -15,7 +15,6 @@
       height: 100vh;
       margin: 0;
     }
-
     .card {
       background: #fff;
       padding: 32px;
@@ -25,17 +24,11 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       text-align: center;
     }
-
-    h2 {
-      margin-top: 0;
-    }
-
     .task {
       margin: 16px 0;
       font-weight: bold;
       word-break: break-all;
     }
-
     button {
       width: 100%;
       padding: 16px;
@@ -56,15 +49,7 @@
     <div>任務編號（taskId）</div>
     <div class="task" id="taskIdText">—</div>
 
-    <!-- ⭐ 關鍵：用 FORM POST -->
-    <form
-      id="reportForm"
-      method="POST"
-      action="https://chiwei.app.n8n.cloud/webhook/picc/report-done"
-    >
-      <input type="hidden" name="taskId" id="taskIdInput" />
-      <button type="submit">確認完成施打</button>
-    </form>
+    <button onclick="submitReport()">確認完成施打</button>
   </div>
 
   <script>
@@ -74,7 +59,5 @@
     document.getElementById("taskIdText").innerText =
       taskId || "未帶入 taskId";
 
-    document.getElementById("taskIdInput").value = taskId || "";
-  </script>
-</body>
-</html>
+    function submitReport() {
+      if (!t
