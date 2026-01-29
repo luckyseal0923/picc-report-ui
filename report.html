@@ -263,6 +263,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const params = new URLSearchParams(window.location.search);
   const taskId = params.get("taskId");
+  // ✅ 保留舊功能：URL 預設帶入施打人（可修改）
+const operator = params.get("operator") || "";
+document.getElementById("operator").value = operator;
 
   document.getElementById("taskIdText").value  = taskId || "未帶入";
   document.getElementById("taskIdInput").value = taskId || "";
