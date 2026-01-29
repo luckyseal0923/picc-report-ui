@@ -16,7 +16,10 @@
       justify-content: center;
     }
 
-    .container { width: 100%; max-width: 640px; }
+    .container {
+      width: 100%;
+      max-width: 640px;
+    }
 
     .card {
       background: #fff;
@@ -97,7 +100,9 @@
 <body>
 <div class="container">
 
-  <!-- 任務資訊 -->
+  <!-- =========================
+       任務資訊（readonly）
+  ========================== -->
   <div class="card">
     <h2>📌 PICC 施打回報</h2>
     <div class="hint">以下任務資訊由系統帶入，僅供確認，無法修改。</div>
@@ -130,29 +135,113 @@
     </div>
   </div>
 
-  <!-- 回報表單 -->
+  <!-- =========================
+       回報完成提示（預設隱藏）
+  ========================== -->
+  <div class="card" id="doneBox" style="display:none;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="font-size:28px;">✅</div>
+      <div style="flex:1;">
+        <div style="font-size:18px; font-weight:800; margin-bottom:4px;">
+          施打回報已完成
+        </div>
+        <div style="font-size:14px; color:#64748b;">
+          此案件已標記為完成，可返回待施打清單。
+        </div>
+      </div>
+      <button
+        type="button"
+        onclick="goBackToList()"
+        style="
+          padding:10px 14px;
+          border-radius:10px;
+          border:none;
+          background:#16a34a;
+          color:#fff;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        🔙 返回清單
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================
+       施打回報表單（✅ 完整保留）
+  ========================== -->
   <div class="card">
     <h3>📝 施打回報資料</h3>
 
-    <form method="POST"
-          action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit?done=1">
+    <form
+      method="POST"
+      action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit?done=1"
+    >
       <input type="hidden" name="taskId" id="taskIdInput" />
       <input type="hidden" name="status" value="完成" />
 
       <div class="grid2">
         <div class="row">
           <label>施打人</label>
-          <input id="operator" name="operator" required />
+          <input id="operator" type="text" name="operator" required />
         </div>
 
         <div class="row">
           <label>放置困難度</label>
           <select name="difficulty" required>
             <option value="" disabled selected>請選擇</option>
-            <option>非常簡單</option><option>簡單</option>
-            <option>中等</option><option>困難</option><option>非常困難</option>
+            <option value="非常簡單">非常簡單</option>
+            <option value="簡單">簡單</option>
+            <option value="中等">中等</option>
+            <option value="困難">困難</option>
+            <option value="非常困難">非常困難</option>
           </select>
         </div>
+      </div>
+
+      <!-- ✅ 你指出被刪掉的欄位：完整保留 -->
+      <div class="grid2">
+        <div class="row">
+          <label>施打位置</label>
+          <select name="insertionSite" required>
+            <option value="" disabled selected>請選擇</option>
+            <option value="右上臂">右上臂</option>
+            <option value="左上臂">左上臂</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>血管</label>
+          <select name="vein" required>
+            <option value="" disabled selected>請選擇</option>
+            <option value="Basilic">Basilic</option>
+            <option value="Cephalic">Cephalic</option>
+            <option value="Brachial">Brachial</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="row">
+          <label>管路長度（cm）</label>
+          <input type="number" step="0.1" name="catheterLength" required />
+        </div>
+
+        <div class="row">
+          <label>管路類型</label>
+          <select name="catheterType" required>
+            <option value="" disabled selected>請選擇</option>
+            <option value="雙腔 PICC">雙腔 PICC</option>
+            <option value="單腔 PICC">單腔 PICC</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>備註</label>
+        <textarea name="remark" placeholder="補充說明（可不填）"></textarea>
       </div>
 
       <button class="btn" type="submit" id="submitBtn">送出施打回報</button>
@@ -163,29 +252,54 @@
 </div>
 
 <script>
+  // =========================
+  // Step 1：只改「帶入任務資訊」
+  // 其他穩定功能一律保留
+  // =========================
   const API_URL = "https://chihwei.appo.n8n.cloud/webhook/picc/task";
   const params = new URLSearchParams(window.location.search);
-  const taskId = params.get("taskId");
 
+  const taskId = params.get("taskId");
+  const operator = params.get("operator") || ""; // ✅ 保留你原本的功能（可帶入施打人）
+
+  // 先把 taskId 填上（就算 API 還沒回來也看得到）
   document.getElementById("taskIdText").value  = taskId || "未帶入";
   document.getElementById("taskIdInput").value = taskId || "";
+  document.getElementById("operator").value    = operator;
 
   if (!taskId) {
     document.getElementById("errBox").style.display = "block";
     document.getElementById("submitBtn").disabled = true;
   } else {
-    fetch(`${API_URL}?taskId=${taskId}`)
+    // ✅ 新增：用 taskId 向後端抓任務資訊，填入 readonly 欄位
+    fetch(`${API_URL}?taskId=${encodeURIComponent(taskId)}`)
       .then(res => res.json())
       .then(data => {
         document.getElementById("name").value      = data.name || "";
         document.getElementById("bedNo").value     = data.bedNo || "";
         document.getElementById("mrn").value       = data.mrn || "";
         document.getElementById("claimedBy").value = data.claimedBy || "";
+
+        // double 保險：後端回來的 taskId 優先
+        document.getElementById("taskIdText").value  = data.taskId || taskId;
+        document.getElementById("taskIdInput").value = data.taskId || taskId;
       })
       .catch(() => {
         document.getElementById("errBox").style.display = "block";
         document.getElementById("submitBtn").disabled = true;
       });
+  }
+
+  // ✅ 保留你原本的完成提示
+  if (params.get("done") === "1") {
+    const box = document.getElementById("doneBox");
+    if (box) box.style.display = "block";
+  }
+
+  // ✅ 保留你原本 hint 的返回清單
+  function goBackToList() {
+    window.location.href =
+      "https://luckyseal0923.github.io/picc-report-ui/list.html";
   }
 </script>
 
