@@ -205,7 +205,7 @@
           <label>施打位置</label>
           <select name="insertionSite" required>
             <option value="" disabled selected>請選擇</option>
-            <option value="右上臂">右上臂</option>
+            <option value="右上臂">右上f臂</option>
             <option value="左上臂">左上臂</option>
             <option value="其他">其他</option>
           </select>
@@ -256,31 +256,30 @@
   // Step 1：只改「帶入任務資訊」
   // 其他穩定功能一律保留
   // =========================
-  const API_URL = "https://chihwei.appo.n8n.cloud/webhook/picc/task";
+<script>
+  const API_URL =
+    "https://chihwei.app.n8n.cloud/webhook/picc/task";
+
   const params = new URLSearchParams(window.location.search);
-
   const taskId = params.get("taskId");
-  const operator = params.get("operator") || ""; // ✅ 保留你原本的功能（可帶入施打人）
 
-  // 先把 taskId 填上（就算 API 還沒回來也看得到）
   document.getElementById("taskIdText").value  = taskId || "未帶入";
   document.getElementById("taskIdInput").value = taskId || "";
-  document.getElementById("operator").value    = operator;
 
   if (!taskId) {
     document.getElementById("errBox").style.display = "block";
     document.getElementById("submitBtn").disabled = true;
   } else {
-    // ✅ 新增：用 taskId 向後端抓任務資訊，填入 readonly 欄位
+    // ✅ Step 1-2：用 taskId 回後端抓完整資料
     fetch(`${API_URL}?taskId=${encodeURIComponent(taskId)}`)
       .then(res => res.json())
       .then(data => {
-        document.getElementById("name").value      = data.name || "";
-        document.getElementById("bedNo").value     = data.bedNo || "";
-        document.getElementById("mrn").value       = data.mrn || "";
-        document.getElementById("claimedBy").value = data.claimedBy || "";
+        document.getElementById("name").value       = data.name || "";
+        document.getElementById("bedNo").value      = data.bedNo || "";
+        document.getElementById("mrn").value        = data.mrn || "";
+        document.getElementById("claimedBy").value  = data.claimedBy || "";
 
-        // double 保險：後端回來的 taskId 優先
+        // double 保險：後端 taskId 優先
         document.getElementById("taskIdText").value  = data.taskId || taskId;
         document.getElementById("taskIdInput").value = data.taskId || taskId;
       })
@@ -290,13 +289,12 @@
       });
   }
 
-  // ✅ 保留你原本的完成提示
+  // ✅ 保留原本完成提示
   if (params.get("done") === "1") {
     const box = document.getElementById("doneBox");
     if (box) box.style.display = "block";
   }
 
-  // ✅ 保留你原本 hint 的返回清單
   function goBackToList() {
     window.location.href =
       "https://luckyseal0923.github.io/picc-report-ui/list.html";
