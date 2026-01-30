@@ -238,8 +238,14 @@ loadList();
 function calcWaitingTime(orderTime) {
   if (!orderTime) return "";
 
-  // ✅ 修正：補成 ISO 格式，避免 iOS / Safari 解析失敗
-  const start = new Date(orderTime.replace(" ", "T"));
+  // ✅ 強制正規化時間字串
+  // 例：2026-01-26 01 : 05 → 2026-01-26T01:05
+  const normalized = orderTime
+    .replace(/\s+/g, " ")   // 多餘空白壓成一個
+    .replace(" ", "T")      // 日期與時間中間
+    .replace(" : ", ":");   // 修正 01 : 05
+
+  const start = new Date(normalized);
   const now = new Date();
 
   if (isNaN(start.getTime())) return "";
