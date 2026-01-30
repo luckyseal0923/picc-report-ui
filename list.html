@@ -116,7 +116,6 @@ function setMsg(type, text) {
   el.className = type || "";
   el.textContent = text || "";
 }
-
 /* =========================
    載入清單
 ========================= */
@@ -125,10 +124,24 @@ async function loadList() {
   $("list").innerHTML = "";
 
   try {
-    const res = await fetch(API_LIST);
+    console.log("[loadList] API_LIST =", API_LIST);
+
+    const res = await fetch(API_LIST, { cache: "no-store" });
+    console.log("[loadList] HTTP status =", res.status);
+
+    // 先抓原始文字，避免 JSON parse 失敗你看不到內容
+    const raw = await res.text();
+    console.log("[loadList] raw response =", raw);
+
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    const data = await res.json();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      throw new Error("回傳不是 JSON：" + raw.slice(0, 200));
+    }
+
     console.log("pending-list response =", data);
 
     if (!Array.isArray(data)) {
@@ -150,11 +163,10 @@ async function loadList() {
     });
 
   } catch (err) {
-    console.error(err);
-    setMsg("error", "❌ 無法載入待施打清單，請確認 API 是否正常");
+    console.error("[loadList] error =", err);
+    setMsg("error", "❌ 無法載入待施打清單，請稍後再試或重新整理");
   }
 }
-
 /* =========================
    單筆卡片
 ========================= */
