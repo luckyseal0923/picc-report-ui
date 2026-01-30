@@ -238,8 +238,9 @@ loadList();
 function calcWaitingTime(orderTime) {
   if (!orderTime) return "";
 
-  const start = new Date(orderTime.replace(" ", "T")); // 起單時間
-  const now = new Date();            // 現在時間
+  // ✅ 修正：補成 ISO 格式，避免 iOS / Safari 解析失敗
+  const start = new Date(orderTime.replace(" ", "T"));
+  const now = new Date();
 
   if (isNaN(start.getTime())) return "";
 
