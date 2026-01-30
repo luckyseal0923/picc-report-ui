@@ -265,6 +265,23 @@ function calcWaitingTime(orderTime) {
   }
   return `等待 ${hours} 小時`;
 }
+
+/* =========================
+   顯示用：只顯示日期（台灣時間）
+========================= */
+function formatDateOnly(dateStr) {
+  if (!dateStr) return "";
+
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+
+  return d.toLocaleDateString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
 </script>
 
 </body>
