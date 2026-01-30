@@ -238,7 +238,7 @@ loadList();
 function calcWaitingTime(orderTime) {
   if (!orderTime) return "";
 
-  const start = new Date(orderTime); // 起單時間
+  const start = new Date(orderTime.replace(" ", "T")); // 起單時間
   const now = new Date();            // 現在時間
 
   if (isNaN(start.getTime())) return "";
