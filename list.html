@@ -130,11 +130,21 @@ async function loadList() {
     const res = await fetch(API_LIST, { cache: "no-store" });
     console.log("[loadList] HTTP status =", res.status);
 
-    // 先抓原始文字，避免 JSON parse 失敗
+    // 先抓原始文字
     const raw = await res.text();
     console.log("[loadList] raw response =", raw);
 
     if (!res.ok) throw new Error("HTTP " + res.status);
+
+    /* =========================
+       ⭐ 關鍵修正點 ⭐
+       n8n 在「0 筆資料」時
+       可能回傳空字串 ""
+    ========================= */
+    if (!raw || raw.trim() === "") {
+      setMsg("empty", "📭 目前沒有任何預約施打案件");
+      return;
+    }
 
     let data;
     try {
@@ -150,7 +160,7 @@ async function loadList() {
     }
 
     /* =========================
-       情境 1：完全沒有任何預約
+       情境 1：完全沒有任何預約（[]）
     ========================= */
     if (data.length === 0) {
       setMsg("empty", "📭 目前沒有任何預約施打案件");
