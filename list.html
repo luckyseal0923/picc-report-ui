@@ -309,15 +309,7 @@ function formatDateOnly(dateStr) {
 
     try {
       const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          source: "list.html",
-          action: "announce_pending",
-          time: new Date().toISOString()
-        })
+        method: "GET"
       });
 
       if (!res.ok) {
@@ -331,6 +323,6 @@ function formatDateOnly(dateStr) {
     }
   });
 </script>
-
+  
 </body>
 </html>
