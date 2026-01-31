@@ -283,6 +283,54 @@ function formatDateOnly(dateStr) {
   });
 }
 </script>
+<!-- 一鍵公告按鈕 -->
+<button
+  id="announceBtn"
+  style="
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: #0A84FF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  "
+>
+  📣 一鍵發布「待施打清單」
+</button>
+
+<script>
+  document.getElementById("announceBtn").addEventListener("click", async () => {
+    const webhookUrl = "https://chihwei.app.n8n.cloud/webhook/picc/announce/pending";
+
+    if (!confirm("確定要發布「待施打清單」公告到 LINE 群組嗎？")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          source: "list.html",
+          action: "announce_pending",
+          time: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Webhook 呼叫失敗");
+      }
+
+      alert("✅ 已送出公告請求，請查看 LINE 群組");
+    } catch (err) {
+      console.error(err);
+      alert("❌ 公告失敗，請查看主控台或 n8n");
+    }
+  });
+</script>
 
 </body>
 </html>
