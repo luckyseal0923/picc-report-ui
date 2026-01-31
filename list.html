@@ -116,8 +116,9 @@ function setMsg(type, text) {
   el.className = type || "";
   el.textContent = text || "";
 }
+
 /* =========================
-   載入清單
+   載入清單（完整版）
 ========================= */
 async function loadList() {
   setMsg("", "");
@@ -129,7 +130,7 @@ async function loadList() {
     const res = await fetch(API_LIST, { cache: "no-store" });
     console.log("[loadList] HTTP status =", res.status);
 
-    // 先抓原始文字，避免 JSON parse 失敗你看不到內容
+    // 先抓原始文字，避免 JSON parse 失敗
     const raw = await res.text();
     console.log("[loadList] raw response =", raw);
 
@@ -148,16 +149,30 @@ async function loadList() {
       throw new Error("API 回傳不是陣列");
     }
 
-    // 只顯示：待施打 + 已接單
+    /* =========================
+       情境 1：完全沒有任何預約
+    ========================= */
+    if (data.length === 0) {
+      setMsg("empty", "📭 目前沒有任何預約施打案件");
+      return;
+    }
+
+    /* =========================
+       情境 2：有預約，但尚未有人接單
+       （只顯示：待施打 + 已接單）
+    ========================= */
     const rows = data.filter(r =>
       safe(r.status) === "待施打" && safe(r.claimedBy)
     );
 
     if (rows.length === 0) {
-      setMsg("empty", "目前沒有待施打的 PICC。");
+      setMsg("empty", "📭 目前沒有已接單的待施打案件");
       return;
     }
 
+    /* =========================
+       情境 3：正常顯示清單
+    ========================= */
     rows.forEach(item => {
       $("list").appendChild(renderCard(item));
     });
