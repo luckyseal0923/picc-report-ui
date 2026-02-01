@@ -1,120 +1,121 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>PICC 待預約清單</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>PICC 待預約清單</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   "Noto Sans TC", Arial, sans-serif;
-      background: #fff7ed;
-      margin: 0;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Noto Sans TC", Arial, sans-serif;
+  background: #fff7ed;
+  margin: 0;
+  padding: 20px;
+}
 
-    h2 {
-      margin-bottom: 8px;
-      color: #92400e;
-    }
+h2 {
+  margin-bottom: 8px;
+  color: #92400e;
+}
 
-    .hint {
-      font-size: 14px;
-      color: #7c2d12;
-      margin-bottom: 16px;
-    }
+.hint {
+  font-size: 14px;
+  color: #7c2d12;
+  margin-bottom: 16px;
+}
 
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
-      border-left: 6px solid #f59e0b;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-left: 6px solid #f59e0b;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
 
-    .name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+.card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-    .meta {
-      font-size: 14px;
-      color: #555;
-    }
+.name {
+  font-size: 18px;
+  font-weight: 700;
+}
 
-    .taskid {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #9ca3af;
-    }
+.meta {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.5;
+  word-break: break-all; /* ✅ 不截斷病歷號 */
+}
 
-    .right {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 140px;
-    }
+.taskid {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+}
 
-    select {
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 14px;
-    }
+.action {
+  display: flex;
+  gap: 10px;
+}
 
-    .btn {
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-      background: #f59e0b;
-      color: #fff;
-      font-weight: 700;
-    }
+select {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
 
-    .btn:disabled {
-      background: #d1d5db;
-      cursor: not-allowed;
-    }
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  background: #f59e0b;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-    .empty {
-      color: #92400e;
-      font-size: 15px;
-      margin-top: 20px;
-    }
+.btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
 
-    .error {
-      color: #b91c1c;
-      font-weight: 700;
-      margin-top: 20px;
-    }
-  </style>
+.empty {
+  color: #92400e;
+  font-size: 15px;
+  margin-top: 20px;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-top: 20px;
+}
+</style>
 </head>
 
 <body>
 
 <h2>⚠️ PICC 待預約清單</h2>
 <div class="hint">
-  以下案件尚未被接單，請選擇施打人後點選「預約施打」。
+以下案件尚未被接單，請選擇施打人後點選「預約施打」。
 </div>
-  
+
 <div id="msg"></div>
 <div id="list"></div>
 
 <script>
-// ===== API =====
-const API_LIST = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
-const API_BOOK = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list/booking";
+const API_LIST = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list/booking";
+const API_BOOK = "https://chihwei.app.n8n.cloud/webhook/booking";
 
-// ===== 施打人清單（你提供的）=====
 const OPERATORS = [
   { id: "gong_bairong", name: "龔柏榕" },
   { id: "chang_chihwei", name: "張智維" },
@@ -123,13 +124,8 @@ const OPERATORS = [
   { id: "chen_boan", name: "陳柏安" }
 ];
 
-function $(id) {
-  return document.getElementById(id);
-}
-
-function safe(v) {
-  return v === null || v === undefined ? "" : String(v);
-}
+const $ = id => document.getElementById(id);
+const safe = v => v ?? "";
 
 function setMsg(type, text) {
   const el = $("msg");
@@ -145,19 +141,14 @@ async function loadList() {
     const res = await fetch(API_LIST, { cache: "no-store" });
     const data = await res.json();
 
-    const rows = data.filter(r => safe(r.status) === "待預約");
-
-    if (rows.length === 0) {
+    const rows = data.filter(r => r.status === "待預約");
+    if (!rows.length) {
       setMsg("empty", "📭 目前沒有待預約案件");
       return;
     }
 
-    rows.forEach(item => {
-      $("list").appendChild(renderCard(item));
-    });
-
-  } catch (err) {
-    console.error(err);
+    rows.forEach(item => $("list").appendChild(renderCard(item)));
+  } catch {
     setMsg("error", "❌ 無法載入待預約清單");
   }
 }
@@ -166,12 +157,15 @@ function renderCard(item) {
   const card = document.createElement("div");
   card.className = "card";
 
-  const taskId = safe(item.taskId);
-  const name = safe(item.name);
-  const bedNo = safe(item.bedNo);
-  const mrn = safe(item.mrn);
-
   const select = document.createElement("select");
+
+  // ✅ placeholder
+  const placeholder = document.createElement("option");
+  placeholder.textContent = "請選擇施打人";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  select.appendChild(placeholder);
+
   OPERATORS.forEach(op => {
     const opt = document.createElement("option");
     opt.value = op.id;
@@ -184,9 +178,12 @@ function renderCard(item) {
   btn.textContent = "預約施打";
 
   btn.onclick = async () => {
-    const selectedIndex = select.selectedIndex;
-    const operator = OPERATORS[selectedIndex];
+    if (select.selectedIndex === 0) {
+      alert("請先選擇施打人");
+      return;
+    }
 
+    const operator = OPERATORS[select.selectedIndex - 1];
     btn.disabled = true;
     btn.textContent = "處理中…";
 
@@ -195,17 +192,15 @@ function renderCard(item) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          taskId,
+          taskId: item.taskId,
           operatorId: operator.id,
           operatorName: operator.name
         })
       });
 
-      if (!res.ok) throw new Error("booking failed");
-
+      if (!res.ok) throw new Error();
       card.remove();
-
-    } catch (e) {
+    } catch {
       alert("❌ 預約失敗，請稍後再試");
       btn.disabled = false;
       btn.textContent = "預約施打";
@@ -213,19 +208,19 @@ function renderCard(item) {
   };
 
   card.innerHTML = `
-    <div>
-      <div class="name">${name || "（未填姓名）"}</div>
-      <div class="meta">床號 ${bedNo} ｜ 病歷號 ${mrn}</div>
-      <div class="taskid">任務編號：${taskId}</div>
+    <div class="card-inner">
+      <div>
+        <div class="name">${safe(item.name)}</div>
+        <div class="meta">
+          床號 ${safe(item.bedNo)} ｜ 病歷號 ${safe(item.mrn)}
+        </div>
+        <div class="taskid">任務編號：${safe(item.taskId)}</div>
+      </div>
+      <div class="action"></div>
     </div>
   `;
 
-  const right = document.createElement("div");
-  right.className = "right";
-  right.appendChild(select);
-  right.appendChild(btn);
-
-  card.appendChild(right);
+  card.querySelector(".action").append(select, btn);
   return card;
 }
 
