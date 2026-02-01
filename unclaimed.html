@@ -49,6 +49,12 @@
       color: #555;
     }
 
+    .taskid {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
     .btn {
       padding: 10px 16px;
       border-radius: 8px;
@@ -59,11 +65,6 @@
       color: #fff;
       font-weight: 700;
       white-space: nowrap;
-    }
-
-    .btn:disabled {
-      background: #d1d5db;
-      cursor: not-allowed;
     }
 
     .empty {
@@ -77,12 +78,6 @@
       font-weight: 700;
       margin-top: 20px;
     }
-    .taskid {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #9ca3af; /* 灰色 */
-  letter-spacing: 0.5px;
-}
   </style>
 </head>
 
@@ -99,9 +94,6 @@
 <script>
 const API_LIST =
   "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
-
-const API_BOOK =
-  "https://chihwei.app.n8n.cloud/webhook/unclaimed-list/booking";
 
 function $(id) {
   return document.getElementById(id);
@@ -160,46 +152,29 @@ function renderCard(item) {
   btn.className = "btn";
   btn.textContent = "預約施打";
 
-  btn.onclick = async () => {
-    btn.disabled = true;
-    btn.textContent = "處理中…";
-
-    try {
-      const res = await fetch(API_BOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskId: taskId
-        })
-      });
-
-      if (!res.ok) throw new Error("booking failed");
-
-      card.remove(); // ✅ 直接消失
-
-    } catch (e) {
-      alert("❌ 預約失敗，請稍後再試");
-      btn.disabled = false;
-      btn.textContent = "預約施打";
-    }
+  btn.onclick = () => {
+    openLineForBooking(taskId);
   };
 
-card.innerHTML = `
-  <div>
-    <div class="name">${name || "（未填姓名）"}</div>
-
-    <div class="meta">
-      床號 ${bedNo} ｜ 病歷號 ${mrn}
+  card.innerHTML = `
+    <div>
+      <div class="name">${name || "（未填姓名）"}</div>
+      <div class="meta">床號 ${bedNo} ｜ 病歷號 ${mrn}</div>
+      <div class="taskid">任務編號：${taskId}</div>
     </div>
-
-    <div class="taskid">
-      任務編號：${taskId}
-    </div>
-  </div>
-`;
+  `;
 
   card.appendChild(btn);
   return card;
+}
+
+function openLineForBooking(taskId) {
+  const LINE_OA_ID = "@426shbwl"; // ✅ 你的 PICC 官方帳
+  const text = `預約施打 ${taskId}`;
+  const encoded = encodeURIComponent(text);
+
+  const url = `https://line.me/R/oaMessage/${LINE_OA_ID}/?${encoded}`;
+  window.location.href = url;
 }
 
 loadList();
