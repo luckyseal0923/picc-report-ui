@@ -77,6 +77,12 @@
       font-weight: 700;
       margin-top: 20px;
     }
+    .taskid {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af; /* 灰色 */
+  letter-spacing: 0.5px;
+}
   </style>
 </head>
 
@@ -178,14 +184,19 @@ function renderCard(item) {
     }
   };
 
-  card.innerHTML = `
-    <div>
-      <div class="name">${name || "（未填姓名）"}</div>
-      <div class="meta">
-        床號 ${bedNo} ｜ 病歷號 ${mrn}
-      </div>
+card.innerHTML = `
+  <div>
+    <div class="name">${name || "（未填姓名）"}</div>
+
+    <div class="meta">
+      床號 ${bedNo} ｜ 病歷號 ${mrn}
     </div>
-  `;
+
+    <div class="taskid">
+      任務編號：${taskId}
+    </div>
+  </div>
+`;
 
   card.appendChild(btn);
   return card;
