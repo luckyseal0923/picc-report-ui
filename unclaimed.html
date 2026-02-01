@@ -9,77 +9,73 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
                    "Noto Sans TC", Arial, sans-serif;
-      background: #FFF7ED;
+      background: #fff7ed;
       margin: 0;
       padding: 20px;
     }
 
     h2 {
-      margin: 0 0 12px;
-      color: #9A3412;
+      margin-bottom: 8px;
+      color: #92400e;
     }
 
     .hint {
       font-size: 14px;
-      color: #92400E;
+      color: #7c2d12;
       margin-bottom: 16px;
     }
 
     .card {
-      background: #FFFBEB;
-      border: 1px solid #FED7AA;
+      background: #ffffff;
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-left: 6px solid #f59e0b;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
     }
 
-    .left {
-      flex: 1;
-    }
-
     .name {
       font-size: 18px;
       font-weight: 700;
       margin-bottom: 6px;
-      color: #7C2D12;
     }
 
     .meta {
       font-size: 14px;
-      color: #78350F;
+      color: #555;
     }
 
     .btn {
       padding: 10px 16px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: none;
       cursor: pointer;
-      font-size: 14px;
-      background: #F97316;
+      font-size: 15px;
+      background: #f59e0b;
       color: #fff;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .btn:disabled {
-      background: #D6D3D1;
+      background: #d1d5db;
       cursor: not-allowed;
     }
 
     .empty {
-      color: #92400E;
-      padding: 12px 4px;
-      font-weight: 700;
+      color: #92400e;
+      font-size: 15px;
+      margin-top: 20px;
     }
 
     .error {
-      color: #B91C1C;
-      padding: 12px 4px;
+      color: #b91c1c;
       font-weight: 700;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -88,25 +84,19 @@
 
 <h2>⚠️ PICC 待預約清單</h2>
 <div class="hint">
-  以下案件尚未被接單，點擊「預約施打」後即會進入排程流程。
+  以下案件尚未被接單，請確認後點選「預約施打」。
 </div>
 
 <div id="msg"></div>
 <div id="list"></div>
 
 <script>
-/* =========================
-   API 設定
-========================= */
 const API_LIST =
   "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
 
-const API_CLAIM =
-  "https://chihwei.app.n8n.cloud/webhook/unclaimed-list/booking";
+const API_BOOK =
+  "https://chihwei.app.n8n.cloud/webhook/0b243fd7-d51a-4fa5-9a64-579c3ea8fde3/webhook";
 
-/* =========================
-   小工具
-========================= */
 function $(id) {
   return document.getElementById(id);
 }
@@ -121,21 +111,19 @@ function setMsg(type, text) {
   el.textContent = text || "";
 }
 
-/* =========================
-   載入待預約清單
-========================= */
 async function loadList() {
-  setMsg("", "");
   $("list").innerHTML = "";
+  setMsg("", "");
 
   try {
     const res = await fetch(API_LIST, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-
     const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("API 回傳不是陣列");
 
-    // 只顯示 status === 待預約
+    if (!Array.isArray(data) || data.length === 0) {
+      setMsg("empty", "📭 目前沒有待預約案件");
+      return;
+    }
+
     const rows = data.filter(r => safe(r.status) === "待預約");
 
     if (rows.length === 0) {
@@ -153,67 +141,56 @@ async function loadList() {
   }
 }
 
-/* =========================
-   卡片
-========================= */
 function renderCard(item) {
   const card = document.createElement("div");
   card.className = "card";
 
-  const rowNumber = item.row_number;
   const taskId = safe(item.taskId);
   const name = safe(item.name);
   const bedNo = safe(item.bedNo);
   const mrn = safe(item.mrn);
 
+  const btn = document.createElement("button");
+  btn.className = "btn";
+  btn.textContent = "預約施打";
+
+  btn.onclick = async () => {
+    btn.disabled = true;
+    btn.textContent = "處理中…";
+
+    try {
+      const res = await fetch(API_BOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskId: taskId
+        })
+      });
+
+      if (!res.ok) throw new Error("booking failed");
+
+      card.remove(); // ✅ 直接消失
+
+    } catch (e) {
+      alert("❌ 預約失敗，請稍後再試");
+      btn.disabled = false;
+      btn.textContent = "預約施打";
+    }
+  };
+
   card.innerHTML = `
-    <div class="left">
+    <div>
       <div class="name">${name || "（未填姓名）"}</div>
       <div class="meta">
         床號 ${bedNo} ｜ 病歷號 ${mrn}
       </div>
     </div>
-
-    <div>
-      <button class="btn">預約施打</button>
-    </div>
   `;
 
-  const btn = card.querySelector("button");
-
-  btn.addEventListener("click", async () => {
-    btn.disabled = true;
-    btn.textContent = "處理中…";
-
-    try {
-      const res = await fetch(API_CLAIM, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          row_number: rowNumber,
-          taskId: taskId
-        })
-      });
-
-      if (!res.ok) throw new Error("預約失敗");
-
-      // ✅ 成功 → 卡片消失
-      card.remove();
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ 預約失敗，請稍後再試");
-      btn.disabled = false;
-      btn.textContent = "預約施打";
-    }
-  });
-
+  card.appendChild(btn);
   return card;
 }
 
-/* =========================
-   啟動
-========================= */
 loadList();
 </script>
 
