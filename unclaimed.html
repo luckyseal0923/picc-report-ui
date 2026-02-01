@@ -1,48 +1,22 @@
 <script>
-async function loadList() {
-  setMsg("", "");
-  $("list").innerHTML = "";
+const API_URL = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
 
-  try {
-    const res = await fetch(API_LIST, { cache: "no-store" });
-    const raw = await res.text();
+fetch(API_URL)
+  .then(res => res.json())
+  .then(list => {
+    console.log("unclaimed list:", list);
 
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
-    }
-
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      throw new Error("回傳不是 JSON");
-    }
-
-    if (!Array.isArray(data)) {
-      throw new Error("API 回傳不是陣列");
-    }
-
-    // ✅ 只顯示「待預約 + 尚未接單」
-    const rows = data.filter(r =>
-      safe(r.status) === "待預約" && !safe(r.claimedBy)
-    );
-
-    // ✅ 這是「正常狀態」，不是錯誤
-    if (rows.length === 0) {
-      setMsg("empty", "📭 目前沒有待預約案件");
+    if (!Array.isArray(list) || list.length === 0) {
+      document.body.innerHTML = "<h3>目前沒有待預約案件</h3>";
       return;
     }
 
-    // ✅ 正常渲染
-    rows.forEach(item => {
-      $("list").appendChild(renderCard(item));
-    });
-
-  } catch (err) {
+    // 先最簡單測試
+    document.body.innerHTML =
+      "<pre>" + JSON.stringify(list, null, 2) + "</pre>";
+  })
+  .catch(err => {
     console.error(err);
-    setMsg("error", "❌ 系統暫時無法載入清單");
-  }
-}
-
-loadList();
+    document.body.innerHTML = "<h3>無法載入待預約清單</h3>";
+  });
 </script>
