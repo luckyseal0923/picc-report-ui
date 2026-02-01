@@ -1,22 +1,142 @@
-<script>
-const API_URL = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PICC 待預約清單</title>
 
-fetch(API_URL)
-  .then(res => res.json())
-  .then(list => {
-    console.log("unclaimed list:", list);
-
-    if (!Array.isArray(list) || list.length === 0) {
-      document.body.innerHTML = "<h3>目前沒有待預約案件</h3>";
-      return;
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #fff6ec;
+      margin: 0;
+      padding: 16px;
+      color: #4a2f00;
     }
 
-    // 先最簡單測試
-    document.body.innerHTML =
-      "<pre>" + JSON.stringify(list, null, 2) + "</pre>";
-  })
-  .catch(err => {
-    console.error(err);
-    document.body.innerHTML = "<h3>無法載入待預約清單</h3>";
-  });
-</script>
+    h1 {
+      color: #c67c00;
+      margin-bottom: 4px;
+    }
+
+    .desc {
+      color: #8a5a00;
+      margin-bottom: 16px;
+    }
+
+    .error {
+      color: #b00020;
+      font-weight: bold;
+      margin-top: 24px;
+    }
+
+    .empty {
+      margin-top: 24px;
+      color: #666;
+    }
+
+    .card {
+      background: #fff;
+      border-left: 6px solid #f5a623;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin: 0 0 6px 0;
+      color: #333;
+    }
+
+    .row {
+      font-size: 14px;
+      margin: 2px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ffe0b2;
+      color: #8a5a00;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>⚠️ PICC 待預約清單</h1>
+  <div class="desc">以下案件尚未被接單，請確認狀況後再認領</div>
+
+  <div id="list"></div>
+
+  <script>
+    // ✅ 改這個就好（你現在這條是通的）
+    const API_URL = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+
+    const listEl = document.getElementById("list");
+
+    function renderEmpty(msg) {
+      listEl.innerHTML = `<div class="empty">${msg}</div>`;
+    }
+
+    function renderError(msg) {
+      listEl.innerHTML = `<div class="error">❌ ${msg}</div>`;
+    }
+
+    function renderCard(item) {
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <h3>病人：${item.name || "-"}</h3>
+        <div class="row">病歷號：${item.mrn || "-"}</div>
+        <div class="row">床號：${item.bedNo || "-"}</div>
+        <div class="row">建立時間：${item.createdAt || "-"}</div>
+        <div class="row">任務編號：${item.taskId || "(尚未產生)"}</div>
+        <span class="tag">狀態：待預約</span>
+      `;
+
+      return div;
+    }
+
+    async function loadList() {
+      listEl.innerHTML = "";
+
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+
+        const data = await res.json();
+
+        // 🛡 防呆：一定要是陣列
+        if (!Array.isArray(data)) {
+          throw new Error("API 回傳格式不是陣列");
+        }
+
+        // 只顯示 status === 待預約
+        const rows = data.filter(
+          r => r.status === "待預約"
+        );
+
+        if (rows.length === 0) {
+          renderEmpty("📭 目前沒有待預約案件");
+          return;
+        }
+
+        rows.forEach(item => {
+          listEl.appendChild(renderCard(item));
+        });
+
+      } catch (err) {
+        console.error(err);
+        renderError("無法載入待預約清單");
+      }
+    }
+
+    loadList();
+  </script>
+</body>
+</html>
