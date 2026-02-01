@@ -55,8 +55,22 @@
       color: #9ca3af;
     }
 
+    .right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 140px;
+    }
+
+    select {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
     .btn {
-      padding: 10px 16px;
+      padding: 10px;
       border-radius: 8px;
       border: none;
       cursor: pointer;
@@ -64,7 +78,11 @@
       background: #f59e0b;
       color: #fff;
       font-weight: 700;
-      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
     }
 
     .empty {
@@ -85,15 +103,25 @@
 
 <h2>⚠️ PICC 待預約清單</h2>
 <div class="hint">
-  以下案件尚未被接單，請確認後點選「預約施打」。
+  以下案件尚未被接單，請選擇施打人後點選「預約施打」。
 </div>
 
 <div id="msg"></div>
 <div id="list"></div>
 
 <script>
-const API_LIST =
-  "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+// ===== API =====
+const API_LIST = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+const API_BOOK = "https://chihwei.app.n8n.cloud/webhook/booking";
+
+// ===== 施打人清單（你提供的）=====
+const OPERATORS = [
+  { id: "gong_bairong", name: "龔柏榕" },
+  { id: "chang_chihwei", name: "張智維" },
+  { id: "chen_weichi", name: "陳瑋琪" },
+  { id: "chuang_dongen", name: "莊東恩" },
+  { id: "chen_boan", name: "陳柏安" }
+];
 
 function $(id) {
   return document.getElementById(id);
@@ -116,11 +144,6 @@ async function loadList() {
   try {
     const res = await fetch(API_LIST, { cache: "no-store" });
     const data = await res.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      setMsg("empty", "📭 目前沒有待預約案件");
-      return;
-    }
 
     const rows = data.filter(r => safe(r.status) === "待預約");
 
@@ -148,12 +171,45 @@ function renderCard(item) {
   const bedNo = safe(item.bedNo);
   const mrn = safe(item.mrn);
 
+  const select = document.createElement("select");
+  OPERATORS.forEach(op => {
+    const opt = document.createElement("option");
+    opt.value = op.id;
+    opt.textContent = op.name;
+    select.appendChild(opt);
+  });
+
   const btn = document.createElement("button");
   btn.className = "btn";
   btn.textContent = "預約施打";
 
-  btn.onclick = () => {
-    openLineForBooking(taskId);
+  btn.onclick = async () => {
+    const selectedIndex = select.selectedIndex;
+    const operator = OPERATORS[selectedIndex];
+
+    btn.disabled = true;
+    btn.textContent = "處理中…";
+
+    try {
+      const res = await fetch(API_BOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskId,
+          operatorId: operator.id,
+          operatorName: operator.name
+        })
+      });
+
+      if (!res.ok) throw new Error("booking failed");
+
+      card.remove();
+
+    } catch (e) {
+      alert("❌ 預約失敗，請稍後再試");
+      btn.disabled = false;
+      btn.textContent = "預約施打";
+    }
   };
 
   card.innerHTML = `
@@ -164,17 +220,13 @@ function renderCard(item) {
     </div>
   `;
 
-  card.appendChild(btn);
+  const right = document.createElement("div");
+  right.className = "right";
+  right.appendChild(select);
+  right.appendChild(btn);
+
+  card.appendChild(right);
   return card;
-}
-
-function openLineForBooking(taskId) {
-  const LINE_OA_ID = "@426shbwl"; // ✅ 你的 PICC 官方帳
-  const text = `預約施打 ${taskId}`;
-  const encoded = encodeURIComponent(text);
-
-  const url = `https://line.me/R/oaMessage/${LINE_OA_ID}/?${encoded}`;
-  window.location.href = url;
 }
 
 loadList();
