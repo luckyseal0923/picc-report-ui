@@ -63,6 +63,25 @@
       font-size: 12px;
       margin-top: 6px;
     }
+
+    .btn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-book {
+      background: #2e7d32;
+      color: #fff;
+    }
+
+    .btn-book:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -73,8 +92,13 @@
   <div id="list"></div>
 
   <script>
-    // ✅ 改這個就好（你現在這條是通的）
-    const API_URL = "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+    // 🔹 讀取待預約清單
+    const LIST_API =
+      "https://chihwei.app.n8n.cloud/webhook/unclaimed-list";
+
+    // 🔹 預約施打 flow（你給的）
+    const BOOK_API =
+      "https://chihwei.app.n8n.cloud/webhook/0b243fd7-d51a-4fa5-9a64-579c3ea8fde3/webhook";
 
     const listEl = document.getElementById("list");
 
@@ -90,6 +114,43 @@
       const div = document.createElement("div");
       div.className = "card";
 
+      const btn = document.createElement("button");
+      btn.className = "btn btn-book";
+      btn.textContent = "🟢 預約施打";
+
+      btn.onclick = async () => {
+        btn.disabled = true;
+        btn.textContent = "處理中…";
+
+        try {
+          const res = await fetch(BOOK_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskId: item.taskId,
+              row_number: item.row_number,
+              caseNo: item.caseNo
+            })
+          });
+
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          // ✅ 成功：卡片直接消失
+          div.remove();
+
+          // 如果全部都消失，顯示空訊息
+          if (listEl.children.length === 0) {
+            renderEmpty("📭 目前沒有待預約案件");
+          }
+
+        } catch (err) {
+          console.error(err);
+          btn.disabled = false;
+          btn.textContent = "🟢 預約施打";
+          alert("預約失敗，請稍後再試");
+        }
+      };
+
       div.innerHTML = `
         <h3>病人：${item.name || "-"}</h3>
         <div class="row">病歷號：${item.mrn || "-"}</div>
@@ -99,6 +160,7 @@
         <span class="tag">狀態：待預約</span>
       `;
 
+      div.appendChild(btn);
       return div;
     }
 
@@ -106,20 +168,13 @@
       listEl.innerHTML = "";
 
       try {
-        const res = await fetch(API_URL, { cache: "no-store" });
+        const res = await fetch(LIST_API, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
 
         const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("API 回傳不是陣列");
 
-        // 🛡 防呆：一定要是陣列
-        if (!Array.isArray(data)) {
-          throw new Error("API 回傳格式不是陣列");
-        }
-
-        // 只顯示 status === 待預約
-        const rows = data.filter(
-          r => r.status === "待預約"
-        );
+        const rows = data.filter(r => r.status === "待預約");
 
         if (rows.length === 0) {
           renderEmpty("📭 目前沒有待預約案件");
