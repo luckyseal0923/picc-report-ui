@@ -1,160 +1,144 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>PICC 待預約清單</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>PICC 待預約清單</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   "Noto Sans TC", Arial, sans-serif;
-      background: #f6f7f9;
-      margin: 0;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Noto Sans TC", Arial, sans-serif;
+  background: #fff7ed; /* 淡橘背景 */
+  margin: 0;
+  padding: 20px;
+}
 
-    h2 {
-      margin: 0 0 12px;
-    }
+h2 {
+  margin: 0 0 8px;
+  color: #c2410c;
+}
 
-    .hint {
-      font-size: 13px;
-      color: #555;
-      margin-bottom: 12px;
-    }
+.hint {
+  font-size: 14px;
+  color: #9a3412;
+  margin-bottom: 16px;
+}
 
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
+.card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
 
-    .left {
-      flex: 1;
-      min-width: 0;
-    }
+/* 左側警示條 */
+.alert-bar {
+  width: 6px;
+  border-radius: 6px;
+  background: #f97316;
+}
 
-    .name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+/* 卡片內容 */
+.content {
+  flex: 1;
+}
 
-    .meta {
-      font-size: 14px;
-      color: #666;
-    }
+.name {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #7c2d12;
+}
 
-    .waiting {
-      margin-top: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #d97706;
-    }
+.meta {
+  font-size: 14px;
+  color: #92400e;
+}
 
-    .btn {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      background: #16a34a;
-      color: #fff;
-      white-space: nowrap;
-    }
+.waiting {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #b45309;
+}
 
-    .btn:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
+/* 接單按鈕 */
+.claim-btn {
+  align-self: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  color: white;
+}
 
-    .empty {
-      color: #777;
-      padding: 12px 4px;
-    }
+.claim-btn:hover {
+  opacity: 0.9;
+}
 
-    .error {
-      color: #c0392b;
-      padding: 12px 4px;
-      font-weight: 700;
-    }
-  </style>
+.empty {
+  color: #9a3412;
+  font-size: 15px;
+  padding: 12px 4px;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 700;
+  padding: 12px 4px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>📋 PICC 待預約清單</h2>
+<h2>⚠️ PICC 待預約清單</h2>
 <div class="hint">
-  顯示目前狀態為「待預約」的案件；點擊「接單」即可認領。
+  以下案件尚未被接單，請確認狀況後再認領。
 </div>
 
 <div id="msg"></div>
 <div id="list"></div>
 
 <script>
-/* =========================
-   API 設定
-========================= */
-const API_UNCLAIMED =
+const API =
   "https://chihwei.app.n8n.cloud/webhook/picc/unclaimed-list";
 
-/* =========================
-   工具
-========================= */
-function $(id) {
-  return document.getElementById(id);
-}
+function $(id){ return document.getElementById(id); }
+function safe(v){ return v == null ? "" : String(v); }
 
-function safe(v) {
-  return v === null || v === undefined ? "" : String(v);
-}
-
-function setMsg(type, text) {
+function setMsg(cls, text) {
   const el = $("msg");
-  el.className = type || "";
+  el.className = cls || "";
   el.textContent = text || "";
 }
 
-/* =========================
-   載入清單
-========================= */
 async function loadList() {
   setMsg("", "");
   $("list").innerHTML = "";
 
   try {
-    console.log("[unclaimed] API =", API_UNCLAIMED);
-
-    const res = await fetch(API_UNCLAIMED, { cache: "no-store" });
+    const res = await fetch(API, { cache: "no-store" });
     const raw = await res.text();
-
-    console.log("[unclaimed] status =", res.status);
-    console.log("[unclaimed] raw =", raw);
 
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    // ⭐ 0 筆資料（n8n 可能回空字串）
     if (!raw || raw.trim() === "") {
-      setMsg("empty", "📭 目前沒有待預約的 PICC 案件");
+      setMsg("empty", "📭 目前沒有待預約案件");
       return;
     }
 
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch (e) {
-      throw new Error("回傳不是 JSON");
-    }
-
+    const data = JSON.parse(raw);
     if (!Array.isArray(data) || data.length === 0) {
-      setMsg("empty", "📭 目前沒有待預約的 PICC 案件");
+      setMsg("empty", "📭 目前沒有待預約案件");
       return;
     }
 
@@ -162,91 +146,42 @@ async function loadList() {
       $("list").appendChild(renderCard(item));
     });
 
-  } catch (err) {
-    console.error("[unclaimed] error =", err);
-    setMsg("error", "❌ 無法載入待預約清單，請稍後再試");
+  } catch (e) {
+    console.error(e);
+    setMsg("error", "❌ 無法載入待預約清單");
   }
 }
 
-/* =========================
-   單筆卡片
-========================= */
 function renderCard(item) {
-  const card = document.createElement("div");
-  card.className = "card";
+  const div = document.createElement("div");
+  div.className = "card";
 
-  const taskId  = safe(item.taskId);
-  const name    = safe(item.name);
-  const bedNo   = safe(item.bedNo);
-  const mrn     = safe(item.mrn);
-  const created = safe(item.createdAt);
+  const taskId = safe(item.taskId);
+  const name = safe(item.name);
+  const bedNo = safe(item.bedNo);
+  const mrn = safe(item.mrn);
+  const createdAt = safe(item.createdAt);
 
-  const waiting = calcWaitingTime(created);
-
-  card.innerHTML = `
-    <div class="left">
+  div.innerHTML = `
+    <div class="alert-bar"></div>
+    <div class="content">
       <div class="name">${name || "（未填姓名）"}</div>
-
-      <div class="meta">
-        床號 ${bedNo} ｜ 病歷號 ${mrn}
-      </div>
-
-      ${waiting ? `<div class="waiting">⏱ ${waiting}</div>` : ""}
+      <div class="meta">床號 ${bedNo} ｜ 病歷號 ${mrn}</div>
+      ${createdAt ? `<div class="waiting">⏱ 等待中</div>` : ""}
     </div>
-
-    <div>
-      <button class="btn"
-        onclick="claimTask('${taskId}')">
-        接單
-      </button>
-    </div>
+    <button class="claim-btn"
+      onclick="claimTask('${taskId}')">
+      接單
+    </button>
   `;
 
-  return card;
+  return div;
 }
 
-/* =========================
-   接單（先預留）
-========================= */
 function claimTask(taskId) {
-  if (!taskId) {
-    alert("缺少 taskId，無法接單");
-    return;
-  }
-
-  // ⚠️ 這裡之後會改成呼叫 n8n 接單 webhook
   alert("（示意）接單：" + taskId);
 }
 
-/* =========================
-   Waiting Time
-========================= */
-function calcWaitingTime(orderTime) {
-  if (!orderTime) return "";
-
-  const normalized = orderTime
-    .replace(/\s+/g, " ")
-    .replace(" ", "T")
-    .replace(" : ", ":");
-
-  const start = new Date(normalized);
-  const now = new Date();
-
-  if (isNaN(start.getTime())) return "";
-
-  const diffMs = now - start;
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-
-  if (hours <= 0) return "等待 0 小時";
-  if (hours < 24) return `等待 ${hours} 小時`;
-
-  const days = Math.floor(hours / 24);
-  return `等待 ${days} 天`;
-}
-
-/* =========================
-   啟動
-========================= */
 loadList();
 </script>
 
