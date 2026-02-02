@@ -98,7 +98,7 @@
    API 設定
 ========================= */
 const API_LIST =
-  "https://chihwei.app.n8n.cloud/webhook/picc/pending-list";
+  "https://https://chihwei-n8n.zeabur.app/webhook/picc/pending-list";
 
 /* =========================
    工具
@@ -326,7 +326,7 @@ function formatDateOnly(dateStr) {
 
 <script>
   document.getElementById("announceBtn").addEventListener("click", async () => {
-    const webhookUrl = "https://chihwei.app.n8n.cloud/webhook/picc/announce/pending";
+    const webhookUrl = "https://chihwei-n8n.zeabur.app/webhook/picc/announce/pending";
 
     if (!confirm("確定要發布「待施打清單」公告到 LINE 群組嗎？")) {
       return;
