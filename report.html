@@ -175,7 +175,7 @@
 
     <form
       method="POST"
-      action="https://chihwei.app.n8n.cloud/webhook/picc/report-submit?done=1"
+      action="https://chihwei-n8n.zeabur.app/webhook/picc/report-submit?done=1"
     >
       <input type="hidden" name="taskId" id="taskIdInput" />
       <input type="hidden" name="status" value="完成" />
@@ -259,7 +259,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   const API_URL =
-    "https://chihwei.app.n8n.cloud/webhook/picc/task";
+    "https://chihwei-n8n.zeabur.app/webhook/picc/task";
 
   const params = new URLSearchParams(window.location.search);
   const taskId = params.get("taskId");
