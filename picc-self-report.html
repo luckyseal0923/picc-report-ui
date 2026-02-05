@@ -112,7 +112,7 @@
     <div class="grid">
       <div>
         <label>病人姓名</label>
-        <input id="name" readonly />
+        <input id="patientName" readonly />
       </div>
 
       <div>
@@ -253,6 +253,20 @@
       }
     }
   </script>
+<script>
+  // 🔹 讀取 URL 參數
+  const params = new URLSearchParams(window.location.search);
+
+  // 🔹 取得資料
+  const bedNo = params.get("bedNo") || "";
+  const mrn = params.get("mrn") || "";
+  const name = params.get("name") || "";
+
+  // 🔹 填入畫面（注意：不是用 name 當 id）
+  document.getElementById("bedNo").value = bedNo;
+  document.getElementById("mrn").value = mrn;
+  document.getElementById("patientName").value = name;
+</script>
 
 </body>
 </html>
