@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>PICC 施打回報（自起單・自回報）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans TC", sans-serif;
+      background: #f5f6f7;
+      margin: 0;
+      padding: 24px;
+    }
+
+    .card {
+      max-width: 720px;
+      margin: 0 auto 24px;
+      background: #fff;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background: #06c755;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:disabled {
+      background: #a5d6b3;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       📌 基本資料
+  ========================= -->
+  <div class="card">
+    <h2>📌 PICC 施打回報（自起單・自回報）</h2>
+    <div class="hint">
+      本表單用於「自行施打並立即回報」，送出後即視為完成。
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>病人姓名</label>
+        <input id="name" placeholder="例如：王大明" />
+      </div>
+
+      <div>
+        <label>床號</label>
+        <input id="bedNo" placeholder="例如：10906" />
+      </div>
+
+      <div>
+        <label>MRN</label>
+        <input id="mrn" placeholder="例如：12345678" />
+      </div>
+
+      <div>
+        <label>施打人</label>
+        <input id="operator" placeholder="你的姓名" />
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       🧾 施打回報資料
+  ========================= -->
+  <div class="card">
+    <h2>🧾 施打回報資料</h2>
+
+    <div class="grid">
+      <div>
+        <label>放置困難度</label>
+        <select id="difficulty">
+          <option value="">請選擇</option>
+          <option value="非常簡單">非常簡單</option>
+          <option value="簡單">簡單</option>
+          <option value="中等">中等</option>
+          <option value="困難">困難</option>
+          <option value="非常困難">非常困難</option>
+        </select>
+      </div>
+
+      <div>
+        <label>施打位置</label>
+        <select id="insertionSite">
+          <option value="">請選擇</option>
+          <option value="右上臂">右上臂</option>
+          <option value="左上臂">左上臂</option>
+        </select>
+      </div>
+
+      <div>
+        <label>血管</label>
+        <select id="vein">
+          <option value="">請選擇</option>
+          <option value="Basilic">Basilic</option>
+          <option value="Cephalic">Cephalic</option>
+          <option value="Brachial">Brachial</option>
+        </select>
+      </div>
+
+      <div>
+        <label>管路類型</label>
+        <select id="catheterType">
+          <option value="">請選擇</option>
+          <option value="雙腔">雙腔</option>
+          <option value="單腔">單腔</option>
+        </select>
+      </div>
+
+      <div>
+        <label>管路長度（cm）</label>
+        <input id="catheterLength" type="number" />
+      </div>
+
+      <div class="full">
+        <label>備註</label>
+        <textarea id="remark" placeholder="補充說明（可不填）"></textarea>
+      </div>
+    </div>
+
+    <button id="submitBtn" onclick="submitReport()">送出施打回報</button>
+    <div class="status" id="statusText"></div>
+  </div>
+
+  <script>
+    /***********************
+     * 🔧 n8n Webhook
+     ***********************/
+    const WEBHOOK_URL = "https://你的-n8n-domain/webhook/picc-self-report";
+
+    async function submitReport() {
+      const btn = document.getElementById("submitBtn");
+      const status = document.getElementById("statusText");
+
+      const payload = {
+        name: name.value.trim(),
+        bedNo: bedNo.value.trim(),
+        mrn: mrn.value.trim(),
+        operator: operator.value.trim(),
+        difficulty: difficulty.value,
+        insertionSite: insertionSite.value,
+        vein: vein.value,
+        catheterType: catheterType.value,
+        catheterLength: catheterLength.value,
+        remark: remark.value.trim(),
+        source: "self-report",
+        status: "完成",
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString()
+      };
+
+      if (!payload.name || !payload.mrn || !payload.operator) {
+        alert("請至少填寫 病人姓名 / MRN / 施打人");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "送出中…";
+      status.innerText = "送出中…";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Webhook error");
+
+        status.innerText = "✅ 已完成施打回報";
+        btn.innerText = "已送出";
+      } catch (e) {
+        console.error(e);
+        status.innerText = "❌ 送出失敗，請稍後再試";
+        btn.disabled = false;
+        btn.innerText = "送出施打回報";
+      }
+    }
+  </script>
+
+</body>
+</html>
