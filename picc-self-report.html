@@ -12,6 +12,7 @@
       margin: 0;
       padding: 24px;
     }
+
     .card {
       max-width: 720px;
       margin: 0 auto 24px;
@@ -20,24 +21,55 @@
       border-radius: 14px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     }
-    h2 { margin: 0 0 12px; }
-    .hint { font-size: 14px; color: #666; margin-bottom: 16px; }
+
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 16px 20px;
+      align-items: start;
     }
-    label { font-weight: 600; margin-bottom: 6px; display: block; }
-    input, select, textarea {
+
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 12px;
       font-size: 15px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      box-sizing: border-box; /* 🔴 關鍵修正 */
     }
-    input[readonly] { background: #f1f3f5; }
-    textarea { resize: vertical; min-height: 80px; }
-    .full { grid-column: 1 / -1; }
+
+    input[readonly] {
+      background: #f1f3f5;
+      color: #555;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
     button {
       width: 100%;
       padding: 14px;
@@ -49,10 +81,22 @@
       cursor: pointer;
       margin-top: 20px;
     }
-    button:disabled { background: #ccc; cursor: not-allowed; }
-    .status { margin-top: 12px; text-align: center; }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+
     @media (max-width: 640px) {
-      .grid { grid-template-columns: 1fr; }
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -69,10 +113,12 @@
       <label>病人姓名</label>
       <input id="patientName" readonly />
     </div>
+
     <div>
       <label>床號</label>
       <input id="bedNo" readonly />
     </div>
+
     <div class="full">
       <label>病歷號</label>
       <input id="mrn" readonly />
@@ -94,9 +140,12 @@
       <label>放置困難度</label>
       <select id="difficulty">
         <option value="">請選擇</option>
+        <option value="非常簡單">非常簡單</option>
         <option value="簡單">簡單</option>
         <option value="中等">中等</option>
         <option value="困難">困難</option>
+        <option value="非常困難">非常困難</option>
+
       </select>
     </div>
 
@@ -115,6 +164,8 @@
         <option value="">請選擇</option>
         <option value="Basilic">Basilic</option>
         <option value="Cephalic">Cephalic</option>
+        <option value="Brachial">Brachial</option>
+
       </select>
     </div>
 
@@ -122,8 +173,8 @@
       <label>管路類型</label>
       <select id="catheterType">
         <option value="">請選擇</option>
-        <option value="單腔">單腔</option>
-        <option value="雙腔">雙腔</option>
+        <option value="雙腔PICC">雙腔PICC</option>
+        <option value="雙腔PICC">雙腔PICC</option>
       </select>
     </div>
 
@@ -134,7 +185,7 @@
 
     <div class="full">
       <label>備註</label>
-      <textarea id="remark"></textarea>
+      <textarea id="remark" placeholder="補充說明（可不填）"></textarea>
     </div>
   </div>
 
@@ -143,9 +194,7 @@
 </div>
 
 <script>
-  /* =========================
-     DOM 參照（全部明確抓）
-  ========================= */
+  /* === DOM 參照（全部明確）=== */
   const patientNameInput = document.getElementById("patientName");
   const bedNoInput = document.getElementById("bedNo");
   const mrnInput = document.getElementById("mrn");
@@ -161,15 +210,13 @@
   const submitBtn = document.getElementById("submitBtn");
   const statusText = document.getElementById("statusText");
 
-  /* =========================
-     讀取 URL 參數（唯一一次）
-  ========================= */
+  /* === 讀取 URL 參數（只做一次）=== */
   const params = new URLSearchParams(window.location.search);
   patientNameInput.value = params.get("name") || "";
   bedNoInput.value = params.get("bedNo") || "";
   mrnInput.value = params.get("mrn") || "";
 
-  /* ⚠️ 改成你的 n8n webhook */
+  /* 🔴 換成你的 n8n webhook */
   const WEBHOOK_URL = "https://你的-n8n-domain/webhook/picc-self-report";
 
   submitBtn.addEventListener("click", submitReport);
