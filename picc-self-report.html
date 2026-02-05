@@ -53,6 +53,11 @@
       border: 1px solid #ccc;
     }
 
+    input[readonly] {
+      background: #f1f3f5;
+      color: #555;
+    }
+
     textarea {
       resize: vertical;
       min-height: 80px;
@@ -66,7 +71,7 @@
       width: 100%;
       padding: 14px;
       font-size: 16px;
-      background: #06c755;
+      background: #ff7a45;
       color: #fff;
       border: none;
       border-radius: 10px;
@@ -96,33 +101,28 @@
 <body>
 
   <!-- =========================
-       📌 基本資料
+       📌 病人資料（起單帶入）
   ========================= -->
   <div class="card">
     <h2>📌 PICC 施打回報（自起單・自回報）</h2>
     <div class="hint">
-      本表單用於「自行施打並立即回報」，送出後即視為完成。
+      以下病人資料由起單系統帶入，僅供確認，無法修改。
     </div>
 
     <div class="grid">
       <div>
         <label>病人姓名</label>
-        <input id="name" placeholder="例如：王大明" />
+        <input id="name" readonly />
       </div>
 
       <div>
         <label>床號</label>
-        <input id="bedNo" placeholder="例如：10906" />
+        <input id="bedNo" readonly />
       </div>
 
-      <div>
-        <label>MRN</label>
-        <input id="mrn" placeholder="例如：12345678" />
-      </div>
-
-      <div>
-        <label>施打人</label>
-        <input id="operator" placeholder="你的姓名" />
+      <div class="full">
+        <label>病歷號</label>
+        <input id="chartNo" readonly />
       </div>
     </div>
   </div>
@@ -134,6 +134,11 @@
     <h2>🧾 施打回報資料</h2>
 
     <div class="grid">
+      <div>
+        <label>施打人</label>
+        <input id="operator" placeholder="請輸入施打人姓名" />
+      </div>
+
       <div>
         <label>放置困難度</label>
         <select id="difficulty">
@@ -169,8 +174,8 @@
         <label>管路類型</label>
         <select id="catheterType">
           <option value="">請選擇</option>
-          <option value="雙腔">雙腔</option>
-          <option value="單腔">單腔</option>
+          <option value="單腔PICC">單腔PICC</option>
+          <option value="雙腔PICC">雙腔PICC</option>
         </select>
       </div>
 
@@ -190,19 +195,33 @@
   </div>
 
   <script>
-    /***********************
-     * 🔧 n8n Webhook
-     ***********************/
+    // =========================
+    // 讀取起單帶入的參數
+    // =========================
+    const params = new URLSearchParams(window.location.search);
+    name.value = params.get("name") || "";
+    bedNo.value = params.get("bedNo") || "";
+    chartNo.value = params.get("chartNo") || "";
+
     const WEBHOOK_URL = "https://你的-n8n-domain/webhook/picc-self-report";
 
     async function submitReport() {
-      const btn = document.getElementById("submitBtn");
-      const status = document.getElementById("statusText");
+      const btn = submitBtn;
+      const status = statusText;
+
+      if (!operator.value.trim()) {
+        alert("請填寫施打人");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "送出中…";
+      status.innerText = "送出中…";
 
       const payload = {
-        name: name.value.trim(),
-        bedNo: bedNo.value.trim(),
-        mrn: mrn.value.trim(),
+        name: name.value,
+        bedNo: bedNo.value,
+        chartNo: chartNo.value,
         operator: operator.value.trim(),
         difficulty: difficulty.value,
         insertionSite: insertionSite.value,
@@ -210,20 +229,11 @@
         catheterType: catheterType.value,
         catheterLength: catheterLength.value,
         remark: remark.value.trim(),
-        source: "self-report",
         status: "完成",
+        source: "self-report",
         createdAt: new Date().toISOString(),
         completedAt: new Date().toISOString()
       };
-
-      if (!payload.name || !payload.mrn || !payload.operator) {
-        alert("請至少填寫 病人姓名 / MRN / 施打人");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = "送出中…";
-      status.innerText = "送出中…";
 
       try {
         const res = await fetch(WEBHOOK_URL, {
@@ -232,12 +242,11 @@
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error("Webhook error");
+        if (!res.ok) throw new Error();
 
         status.innerText = "✅ 已完成施打回報";
         btn.innerText = "已送出";
-      } catch (e) {
-        console.error(e);
+      } catch {
         status.innerText = "❌ 送出失敗，請稍後再試";
         btn.disabled = false;
         btn.innerText = "送出施打回報";
