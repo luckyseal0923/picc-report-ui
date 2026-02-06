@@ -141,20 +141,25 @@ async function loadList() {
     const res = await fetch(API_LIST, { cache: "no-store" });
     const data = await res.json();
 
+    const allRows = data; // ⭐ 保留全部歷史
     const rows = data.filter(r => r.status === "待預約");
     if (!rows.length) {
       setMsg("empty", "📭 目前沒有待預約案件");
       return;
     }
 
-    rows.forEach(item => $("list").appendChild(renderCard(item)));
+      rows.forEach(item => $("list").appendChild(renderCard(item, allRows)));
   } catch {
     setMsg("error", "❌ 無法載入待預約清單");
   }
 }
 
-function renderCard(item) {
+function renderCard(item, allRows) {
   const card = document.createElement("div");
+    const hasDifficultHistory = allRows.some(r =>
+    r.mrn === item.mrn &&
+    (r.difficulty === "困難" || r.difficulty === "非常困難")
+  );
   card.className = "card";
 
   const select = document.createElement("select");
@@ -207,18 +212,28 @@ function renderCard(item) {
     }
   };
 
-  card.innerHTML = `
-    <div class="card-inner">
-      <div>
-        <div class="name">${safe(item.name)}</div>
-        <div class="meta">
-          床號 ${safe(item.bedNo)} ｜ 病歷號 ${safe(item.mrn)}
-        </div>
-        <div class="taskid">任務編號：${safe(item.taskId)}</div>
+card.innerHTML = `
+  <div class="card-inner">
+    <div>
+      <div class="name">${safe(item.name)}</div>
+
+      ${
+        hasDifficultHistory
+          ? `<div style="color:#b91c1c;font-weight:700;margin-top:4px;">
+              ⚠️ 曾有困難 / 非常困難放置紀錄
+            </div>`
+          : ``
+      }
+
+      <div class="meta">
+        床號 ${safe(item.bedNo)} ｜ 病歷號 ${safe(item.mrn)}
       </div>
-      <div class="action"></div>
+      <div class="taskid">任務編號：${safe(item.taskId)}</div>
     </div>
-  `;
+    <div class="action"></div>
+  </div>
+`;
+
 
   card.querySelector(".action").append(select, btn);
   return card;
