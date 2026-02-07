@@ -253,8 +253,16 @@
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error();
-      statusText.innerText = "✅ 已完成施打回報";
+if (!res.ok) throw new Error();
+
+// ✅ 成功後導向完成頁（帶資料過去）
+const query = new URLSearchParams({
+  name: patientNameInput.value,
+  bedNo: bedNoInput.value,
+  mrn: mrnInput.value
+}).toString();
+
+window.location.href = `success.html?${query}`;
     } catch (err) {
       statusText.innerText = "❌ 送出失敗，請稍後再試";
       submitBtn.disabled = false;
