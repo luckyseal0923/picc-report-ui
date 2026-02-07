@@ -225,34 +225,59 @@ function renderCard(item, difficultMrnSet) {
   // ✅ waiting time（現在時間 - 起單時間）
   const waitingTime = calcWaitingTime(item.createdAt);
 
-  card.innerHTML = `
-    <div class="left">
-      <div class="name">${name || "（未填姓名）"}</div>
+  ccard.innerHTML = `
+  <div class="left">
 
-<div class="meta">
-  床號 ${bedNo} ｜ 病歷號 ${mrn} ｜ ${createdDateOnly}
-  ${
-    hasDifficultHistory
-      ? `<span
-           title="曾有困難 PICC 放置紀錄"
-           style="margin-left:6px; color:#d97706; cursor:help;"
-         >⚠️</span>`
-      : ""
-  }
-</div>
-
-      <div class="claimed">👤 接單者：${claimedBy}</div>
-
-      ${waitingTime ? `<div class="waiting">⏱ ${waitingTime}</div>` : ""}
+    <!-- 第 1 列：姓名 + 困難 icon -->
+    <div class="name">
+      ${name || "（未填姓名）"}
+      ${
+        hasDifficultHistory
+          ? `<span
+               title="曾有困難 / 非常困難 PICC 放置紀錄"
+               style="
+                 margin-left:6px;
+                 color:#d97706;
+                 font-size:16px;
+                 cursor:help;
+               "
+             >⚠️</span>`
+          : ""
+      }
     </div>
 
-    <div>
-      <button class="btn"
-        onclick="goReport('${taskId}', '${claimedBy}')">
-        回報完成
-      </button>
+    <!-- 第 2 列：床號 + 病歷號 -->
+    <div class="meta">
+      床號 ${bedNo} ｜ 病歷號 ${mrn}
     </div>
-  `;
+
+    <!-- 第 3 列：起單時間 -->
+    <div class="meta">
+      起單時間 ${createdDateOnly}
+    </div>
+
+    <!-- 第 4 列：接單者 -->
+    <div class="claimed">
+      👤 接單者：${claimedBy}
+    </div>
+
+    <!-- 第 5 列：等候時間 -->
+    ${
+      waitingTime
+        ? `<div class="waiting">⏱ ${waitingTime}</div>`
+        : ""
+    }
+
+  </div>
+
+  <div>
+    <button class="btn"
+      onclick="goReport('${taskId}', '${claimedBy}')">
+      回報完成
+    </button>
+  </div>
+`;
+
 
   return card;
 }
