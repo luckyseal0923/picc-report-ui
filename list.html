@@ -152,7 +152,19 @@ async function loadList() {
     } catch (e) {
       throw new Error("回傳不是 JSON：" + raw.slice(0, 200));
     }
-
+/* =========================
+   建立「困難放置病歷號」Set
+   條件：困難 / 非常困難
+========================= */
+const difficultMrnSet = new Set(
+  data
+    .filter(r =>
+      safe(r.difficulty) === "困難" ||
+      safe(r.difficulty) === "非常困難"
+    )
+    .map(r => safe(r.mrn))
+    .filter(mrn => mrn !== "")
+);
     console.log("pending-list response =", data);
 
     if (!Array.isArray(data)) {
@@ -183,9 +195,9 @@ async function loadList() {
     /* =========================
        情境 3：正常顯示清單
     ========================= */
-    rows.forEach(item => {
-      $("list").appendChild(renderCard(item));
-    });
+rows.forEach(item => {
+  $("list").appendChild(renderCard(item, difficultMrnSet));
+});
 
   } catch (err) {
     console.error("[loadList] error =", err);
@@ -195,7 +207,7 @@ async function loadList() {
 /* =========================
    單筆卡片
 ========================= */
-function renderCard(item) {
+function renderCard(item, difficultMrnSet) {
   const card = document.createElement("div");
   card.className = "card";
 
@@ -205,7 +217,11 @@ function renderCard(item) {
   const mrn       = safe(item.mrn);
   const createdDateOnly = formatDateOnly(item.createdAt);
   const claimedBy = safe(item.claimedBy);
-
+  
+  // ⭐ 就放在這裡 ⭐
+  const hasDifficultHistory =
+    difficultMrnSet && difficultMrnSet.has(mrn);
+  
   // ✅ waiting time（現在時間 - 起單時間）
   const waitingTime = calcWaitingTime(item.createdAt);
 
@@ -213,9 +229,17 @@ function renderCard(item) {
     <div class="left">
       <div class="name">${name || "（未填姓名）"}</div>
 
-      <div class="meta">
-        床號 ${bedNo} ｜ 病歷號 ${mrn} ｜  ${createdDateOnly}
-      </div>
+<div class="meta">
+  床號 ${bedNo} ｜ 病歷號 ${mrn} ｜ ${createdDateOnly}
+  ${
+    hasDifficultHistory
+      ? `<span
+           title="曾有困難 PICC 放置紀錄"
+           style="margin-left:6px; color:#d97706; cursor:help;"
+         >⚠️</span>`
+      : ""
+  }
+</div>
 
       <div class="claimed">👤 接單者：${claimedBy}</div>
 
