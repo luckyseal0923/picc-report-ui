@@ -6,36 +6,30 @@
 
 <style>
 body {
-  font-family: Arial, "Noto Sans TC", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", Arial, sans-serif;
   background: #f6f7f9;
   padding: 20px;
 }
-
 h2 {
   margin-bottom: 12px;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
 }
-
 th, td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
 }
-
 th {
-  background: #eee;
+  background: #f0f0f0;
 }
-
 input, select {
   width: 90%;
   padding: 4px;
 }
-
 button {
   padding: 4px 10px;
   cursor: pointer;
@@ -67,34 +61,35 @@ button {
 const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/admin/update-task";
 
+/* =========================
+   載入任務清單
+========================= */
 fetch(API_LIST)
   .then(res => res.json())
-  .then(res => {
+  .then(data => {
     const tbody = document.querySelector("#taskTable tbody");
     tbody.innerHTML = "";
 
-    if (!res.data || !Array.isArray(res.data)) {
-      alert("API 回傳格式錯誤，請檢查 n8n");
-      return;
-    }
-
-    res.data.forEach(item => {
-      const row = item.json;
-
+    data.forEach(row => {
       const tr = document.createElement("tr");
+
       tr.innerHTML = `
         <td>${row.task_id}</td>
         <td>${row.patient_name}</td>
-        <td><input value="${row.bed_no || ''}"></td>
+        <td>
+          <input class="bed_no" value="${row.bed_no ?? ''}">
+        </td>
         <td>${row.mrn}</td>
         <td>${row.status}</td>
         <td>
-          <select>
+          <select class="difficulty">
             <option value="一般" ${row.difficulty === '一般' ? 'selected' : ''}>一般</option>
             <option value="困難" ${row.difficulty === '困難' ? 'selected' : ''}>困難</option>
           </select>
         </td>
-        <td><input value="${row.remark || ''}"></td>
+        <td>
+          <input class="remark" value="${row.remark ?? ''}">
+        </td>
         <td>
           <button onclick="saveRow(this, '${row.task_id}')">💾</button>
         </td>
@@ -103,19 +98,21 @@ fetch(API_LIST)
     });
   })
   .catch(err => {
+    alert("載入資料失敗");
     console.error(err);
-    alert("讀取資料失敗");
   });
 
+/* =========================
+   儲存單筆
+========================= */
 function saveRow(btn, taskId) {
   const tr = btn.closest("tr");
-  const inputs = tr.querySelectorAll("input, select");
 
   const payload = {
     task_id: taskId,
-    bed_no: inputs[0].value,
-    difficulty: inputs[1].value,
-    remark: inputs[2].value
+    bed_no: tr.querySelector(".bed_no").value,
+    difficulty: tr.querySelector(".difficulty").value,
+    remark: tr.querySelector(".remark").value
   };
 
   fetch(API_UPDATE, {
@@ -123,8 +120,14 @@ function saveRow(btn, taskId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   })
-  .then(() => alert("已儲存"))
-  .catch(() => alert("儲存失敗"));
+  .then(res => res.json())
+  .then(() => {
+    alert("已儲存");
+  })
+  .catch(err => {
+    alert("儲存失敗");
+    console.error(err);
+  });
 }
 </script>
 
