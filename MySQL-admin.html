@@ -2,34 +2,47 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>PICC 任務管理</title>
+<title>PICC 任務管理（安全編輯）</title>
+
 <style>
 body {
   font-family: Arial, "Noto Sans TC", sans-serif;
   background: #f6f7f9;
   padding: 20px;
 }
+
+h2 {
+  margin-bottom: 12px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
 }
+
 th, td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
 }
+
 th {
   background: #eee;
 }
+
 input, select {
   width: 90%;
+  padding: 4px;
 }
+
 button {
   padding: 4px 10px;
+  cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
 <h2>📋 PICC 任務管理（安全編輯）</h2>
@@ -51,38 +64,51 @@ button {
 </table>
 
 <script>
-const API_LIST = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
+const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/admin/update-task";
 
 fetch(API_LIST)
   .then(res => res.json())
-  .then(data => {
+  .then(res => {
     const tbody = document.querySelector("#taskTable tbody");
-    data.forEach(row => {
+    tbody.innerHTML = "";
+
+    if (!res.data || !Array.isArray(res.data)) {
+      alert("API 回傳格式錯誤，請檢查 n8n");
+      return;
+    }
+
+    res.data.forEach(item => {
+      const row = item.json;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${row.task_id}</td>
         <td>${row.patient_name}</td>
-        <td><input value="${row.bed_no}" /></td>
+        <td><input value="${row.bed_no || ''}"></td>
         <td>${row.mrn}</td>
         <td>${row.status}</td>
         <td>
           <select>
-            <option ${row.difficulty==='一般'?'selected':''}>一般</option>
-            <option ${row.difficulty==='困難'?'selected':''}>困難</option>
+            <option value="一般" ${row.difficulty === '一般' ? 'selected' : ''}>一般</option>
+            <option value="困難" ${row.difficulty === '困難' ? 'selected' : ''}>困難</option>
           </select>
         </td>
-        <td><input value="${row.remark || ''}" /></td>
+        <td><input value="${row.remark || ''}"></td>
         <td>
           <button onclick="saveRow(this, '${row.task_id}')">💾</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
+  })
+  .catch(err => {
+    console.error(err);
+    alert("讀取資料失敗");
   });
 
 function saveRow(btn, taskId) {
-  const tr = btn.parentElement.parentElement;
+  const tr = btn.closest("tr");
   const inputs = tr.querySelectorAll("input, select");
 
   const payload = {
@@ -96,9 +122,9 @@ function saveRow(btn, taskId) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-  }).then(() => {
-    alert("已儲存");
-  });
+  })
+  .then(() => alert("已儲存"))
+  .catch(() => alert("儲存失敗"));
 }
 </script>
 
