@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>PICC 任務管理</title>
+<style>
+body {
+  font-family: Arial, "Noto Sans TC", sans-serif;
+  background: #f6f7f9;
+  padding: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background: #eee;
+}
+input, select {
+  width: 90%;
+}
+button {
+  padding: 4px 10px;
+}
+</style>
+</head>
+<body>
+
+<h2>📋 PICC 任務管理（安全編輯）</h2>
+
+<table id="taskTable">
+  <thead>
+    <tr>
+      <th>任務編號</th>
+      <th>病人</th>
+      <th>床號</th>
+      <th>MRN</th>
+      <th>狀態</th>
+      <th>困難度</th>
+      <th>備註</th>
+      <th>儲存</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const API_LIST = "https://你的-n8n/webhook/admin/tasks";
+const API_UPDATE = "https://你的-n8n/webhook/admin/update-task";
+
+fetch(API_LIST)
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector("#taskTable tbody");
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.task_id}</td>
+        <td>${row.patient_name}</td>
+        <td><input value="${row.bed_no}" /></td>
+        <td>${row.mrn}</td>
+        <td>${row.status}</td>
+        <td>
+          <select>
+            <option ${row.difficulty==='一般'?'selected':''}>一般</option>
+            <option ${row.difficulty==='困難'?'selected':''}>困難</option>
+          </select>
+        </td>
+        <td><input value="${row.remark || ''}" /></td>
+        <td>
+          <button onclick="saveRow(this, '${row.task_id}')">💾</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+
+function saveRow(btn, taskId) {
+  const tr = btn.parentElement.parentElement;
+  const inputs = tr.querySelectorAll("input, select");
+
+  const payload = {
+    task_id: taskId,
+    bed_no: inputs[0].value,
+    difficulty: inputs[1].value,
+    remark: inputs[2].value
+  };
+
+  fetch(API_UPDATE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    alert("已儲存");
+  });
+}
+</script>
+
+</body>
+</html>
