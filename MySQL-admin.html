@@ -2,116 +2,156 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>PICC 任務管理（安全編輯）</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PICC 任務管理（專業編輯版）</title>
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", Arial, sans-serif;
-  background: #f6f7f9;
-  padding: 20px;
-}
-h2 {
-  margin-bottom: 12px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-th {
-  background: #f0f0f0;
-}
-input, select {
-  width: 90%;
-  padding: 4px;
-}
-button {
-  padding: 4px 10px;
-  cursor: pointer;
-}
+  :root { --primary: #10B981; --bg: #f8fafc; --text: #334155; --border: #e2e8f0; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+  .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px; gap: 10px; }
+  .filter-bar { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  
+  .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+  table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+  th { background: #f1f5f9; padding: 12px; font-size: 13px; text-align: left; color: #64748b; border-bottom: 2px solid var(--border); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+
+  /* 編輯模式樣式 */
+  .view-mode { display: inline-block; }
+  .edit-mode { display: none; width: 90%; padding: 5px; border: 1px solid var(--primary); border-radius: 4px; }
+  .editing .view-mode { display: none; }
+  .editing .edit-mode { display: inline-block; }
+
+  .btn { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: bold; }
+  .btn-edit { background: #e2e8f0; color: #475569; }
+  .btn-save { background: var(--primary); color: white; display: none; }
+  .btn-del { background: #fee2e2; color: #b91c1c; }
+  .editing .btn-save { display: inline-block; }
+  .editing .btn-edit { display: none; }
+
+  /* 手機版 RWD 轉卡片 */
+  @media (max-width: 1000px) {
+    .table-container { background: transparent; box-shadow: none; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { background: white; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; padding: 15px; }
+    td { display: flex; justify-content: space-between; padding: 8px 0; border: none; border-bottom: 1px dashed #eee; text-align: right; }
+    td::before { content: attr(data-label); font-weight: bold; color: #64748b; text-align: left; }
+    td:last-child { border: none; flex-direction: row; justify-content: center; gap: 10px; padding-top: 15px; }
+  }
 </style>
 </head>
-
 <body>
 
-<h2>📋 PICC 任務管理（安全編輯）</h2>
+<div class="header">
+  <h2>📋 PICC 任務管理系統</h2>
+  <div class="filter-bar">
+    <input type="date" id="dateStart"> <span>至</span> <input type="date" id="dateEnd">
+    <button class="btn btn-primary" onclick="loadTasks()">查詢區間</button>
+  </div>
+</div>
 
-<table id="taskTable">
-  <thead>
-    <tr>
-      <th>任務編號</th>
-      <th>病人</th>
-      <th>床號</th>
-      <th>MRN</th>
-      <th>狀態</th>
-      <th>困難度</th>
-      <th>備註</th>
-      <th>儲存</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<div class="table-container">
+  <table id="taskTable">
+    <thead>
+      <tr>
+        <th>起單時間</th><th>任務編號</th><th>病歷號</th><th>病人/床號</th><th>接單/施打</th>
+        <th>困難度</th><th>部位/血管</th><th>管路資訊</th><th>備註</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="taskBody"></tbody>
+  </table>
+</div>
 
 <script>
-const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
+const API_LIST = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/admin/update-task";
+const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/admin/delete-task";
 
-/* =========================
-   載入任務清單
-========================= */
-fetch(API_LIST)
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.querySelector("#taskTable tbody");
-    tbody.innerHTML = "";
+// 預設日期區間 (近兩個月)
+const now = new Date();
+const twoMonthsAgo = new Date();
+twoMonthsAgo.setMonth(now.getMonth() - 2);
+document.getElementById('dateStart').value = twoMonthsAgo.toISOString().split('T')[0];
+document.getElementById('dateEnd').value = now.toISOString().split('T')[0];
 
-    data.forEach(row => {
-      const tr = document.createElement("tr");
+function loadTasks() {
+  const start = document.getElementById('dateStart').value;
+  const end = document.getElementById('dateEnd').value;
+  
+  fetch(`${API_LIST}?start=${start}&end=${end}`)
+    .then(res => res.json())
+    .then(renderTable);
+}
 
-      tr.innerHTML = `
-        <td>${row.task_id}</td>
-        <td>${row.patient_name}</td>
-        <td>
-          <input class="bed_no" value="${row.bed_no ?? ''}">
-        </td>
-        <td>${row.mrn}</td>
-        <td>${row.status}</td>
-        <td>
-          <select class="difficulty">
-            <option value="一般" ${row.difficulty === '一般' ? 'selected' : ''}>一般</option>
-            <option value="困難" ${row.difficulty === '困難' ? 'selected' : ''}>困難</option>
-          </select>
-        </td>
-        <td>
-          <input class="remark" value="${row.remark ?? ''}">
-        </td>
-        <td>
-          <button onclick="saveRow(this, '${row.task_id}')">💾</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  })
-  .catch(err => {
-    alert("載入資料失敗");
-    console.error(err);
-  });
+function renderTable(data) {
+  const tbody = document.getElementById("taskBody");
+  tbody.innerHTML = data.map(row => `
+    <tr id="tr-${row.task_id}">
+      <td data-label="起單時間">${row.createdAt.split('T')[0]}</td>
+      <td data-label="編號"><b>${row.task_id}</b></td>
+      <td data-label="MRN">${row.MRN}</td>
+      <td data-label="病人/床號">
+        ${row.patient_name}<br>
+        <span class="view-mode">(${row.bed_no ?? '未填'})</span>
+        <input class="edit-mode bed_no" value="${row.bed_no ?? ''}">
+      </td>
+      <td data-label="接單/施打">
+        <span class="view-mode">${row.claimedBy ?? '-'}/${row.operator ?? '-'}</span>
+        <div class="edit-mode">
+            <input class="claimedBy" value="${row.claimedBy ?? ''}" placeholder="接單">
+            <input class="operator" value="${row.operator ?? ''}" placeholder="施打">
+        </div>
+      </td>
+      <td data-label="困難度">
+        <span class="view-mode">${row.difficulty}</span>
+        <select class="edit-mode difficulty">
+          <option value="一般" ${row.difficulty==='一般'?'selected':''}>一般</option>
+          <option value="困難" ${row.difficulty==='困難'?'selected':''}>困難</option>
+        </select>
+      </td>
+      <td data-label="部位/血管">
+        <span class="view-mode">${row.insertionSite ?? '-'}/${row.vein ?? '-'}</span>
+        <div class="edit-mode">
+            <input class="insertionSite" value="${row.insertionSite ?? ''}" placeholder="部位">
+            <input class="vein" value="${row.vein ?? ''}" placeholder="血管">
+        </div>
+      </td>
+      <td data-label="管路資訊">
+        <span class="view-mode">${row.catheterType ?? '-'}/${row.catheterLength ?? '-'}cm</span>
+        <div class="edit-mode">
+            <input class="catheterType" value="${row.catheterType ?? ''}" placeholder="種類">
+            <input class="catheterLength" type="number" value="${row.catheterLength ?? ''}" placeholder="長度">
+        </div>
+      </td>
+      <td data-label="備註">
+        <span class="view-mode">${row.remark ?? '-'}</span>
+        <input class="edit-mode remark" value="${row.remark ?? ''}">
+      </td>
+      <td>
+        <button class="btn btn-edit" onclick="toggleEdit('${row.task_id}')">編輯</button>
+        <button class="btn btn-save" onclick="saveRow('${row.task_id}')">儲存</button>
+        <button class="btn btn-del" onclick="deleteRow('${row.task_id}')">刪除</button>
+      </td>
+    </tr>
+  `).join('');
+}
 
-/* =========================
-   儲存單筆
-========================= */
-function saveRow(btn, taskId) {
-  const tr = btn.closest("tr");
+function toggleEdit(id) {
+  document.getElementById(`tr-${id}`).classList.add('editing');
+}
 
+function saveRow(id) {
+  const tr = document.getElementById(`tr-${id}`);
   const payload = {
-    task_id: taskId,
+    task_id: id,
     bed_no: tr.querySelector(".bed_no").value,
+    claimedBy: tr.querySelector(".claimedBy").value,
+    operator: tr.querySelector(".operator").value,
     difficulty: tr.querySelector(".difficulty").value,
+    insertionSite: tr.querySelector(".insertionSite").value,
+    vein: tr.querySelector(".vein").value,
+    catheterType: tr.querySelector(".catheterType").value,
+    catheterLength: tr.querySelector(".catheterLength").value,
     remark: tr.querySelector(".remark").value
   };
 
@@ -119,17 +159,26 @@ function saveRow(btn, taskId) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(() => {
-    alert("已儲存");
-  })
-  .catch(err => {
-    alert("儲存失敗");
-    console.error(err);
+  }).then(() => {
+    alert("儲存成功");
+    tr.classList.remove('editing');
+    loadTasks();
   });
 }
-</script>
 
+function deleteRow(id) {
+  if(!confirm("確定要刪除這筆任務嗎？")) return;
+  fetch(API_DELETE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task_id: id })
+  }).then(() => {
+    document.getElementById(`tr-${id}`).remove();
+    alert("已刪除");
+  });
+}
+
+window.onload = loadTasks;
+</script>
 </body>
 </html>
