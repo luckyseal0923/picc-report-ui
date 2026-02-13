@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PICC 任務管理系統 - Pro</title>
+<title>PICC 任務管理系統 - 最終演示版</title>
 <style>
   :root { --primary: #10B981; --bg: #f8fafc; --text: #334155; --border: #e2e8f0; }
   body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
@@ -14,13 +14,14 @@
   table { width: 100%; border-collapse: collapse; min-width: 1300px; }
   
   /* 表頭排序樣式 */
-  th { background: #f1f5f9; padding: 14px; font-size: 13px; text-align: left; color: #1e293b; border-bottom: 2px solid var(--border); cursor: pointer; white-space: nowrap; position: relative; }
+  th { background: #f1f5f9; padding: 14px; font-size: 13px; text-align: left; color: #1e293b; border-bottom: 2px solid var(--border); cursor: pointer; white-space: nowrap; }
   th:hover { background: #e2e8f0; }
-  th::after { content: ' ↕'; opacity: 0.3; font-size: 10px; }
 
   td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+  
+  /* 編輯鎖功能樣式 */
   .view-mode { display: inline-block; }
-  .edit-mode { display: none; width: 95%; padding: 6px; border: 1px solid var(--primary); border-radius: 4px; box-sizing: border-box; }
+  .edit-mode { display: none; width: 95%; padding: 6px; border: 1px solid var(--primary); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
   .editing .view-mode { display: none; }
   .editing .edit-mode { display: block; }
 
@@ -31,12 +32,14 @@
   .editing .btn-save { display: inline-block; }
   .editing .btn-edit { display: none; }
 
+  /* 手機版 RWD 卡片化 */
   @media (max-width: 1000px) {
     table, thead, tbody, th, td, tr { display: block; }
     thead { display: none; }
-    tr { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; padding: 10px; }
+    tr { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; padding: 10px; background: white; }
     td { display: flex; justify-content: space-between; padding: 10px 5px; border: none; border-bottom: 1px dashed #eee; text-align: right; }
     td::before { content: attr(data-label); font-weight: bold; color: #64748b; text-align: left; }
+    td:last-child { border: none; }
   }
 </style>
 </head>
@@ -46,7 +49,7 @@
   <h2>📋 PICC 任務管理系統</h2>
   <div class="filter-bar">
     <input type="date" id="dateStart"> <span>至</span> <input type="date" id="dateEnd">
-    <button class="btn btn-primary" style="background:var(--primary); color:white" onclick="loadTasks()">查詢區間</button>
+    <button class="btn" style="background:var(--primary); color:white" onclick="loadTasks()">查詢區間</button>
   </div>
 </div>
 
@@ -54,15 +57,15 @@
   <table id="taskTable">
     <thead>
       <tr>
-        <th onclick="sortTable(0)">起單時間 / 任務編號</th>
-        <th onclick="sortTable(1)">病人 / 病歷號</th>
-        <th onclick="sortTable(2)">床號</th>
-        <th onclick="sortTable(3)">接單者</th>
-        <th onclick="sortTable(4)">施打者</th>
-        <th onclick="sortTable(5)">管路 (種類/長度)</th>
-        <th onclick="sortTable(6)">部位 / 血管</th>
-        <th onclick="sortTable(7)">施打困難度</th>
-        <th onclick="sortTable(8)">備註</th>
+        <th onclick="sortTable(0)">起單時間 / 任務編號 ↕</th>
+        <th onclick="sortTable(1)">病人 / 病歷號 ↕</th>
+        <th onclick="sortTable(2)">床號 ↕</th>
+        <th onclick="sortTable(3)">接單者 ↕</th>
+        <th onclick="sortTable(4)">施打者 ↕</th>
+        <th onclick="sortTable(5)">管路資訊 (種類/長度) ↕</th>
+        <th onclick="sortTable(6)">部位 / 血管 ↕</th>
+        <th onclick="sortTable(7)">困難度 ↕</th>
+        <th onclick="sortTable(8)">備註 ↕</th>
         <th>操作</th>
       </tr>
     </thead>
@@ -71,11 +74,12 @@
 </div>
 
 <script>
-const API_LIST = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
+// 您指定的 Webhook 網址
+const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/update-task";
 const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/delete-task";
 
-// 預設日期區間
+// 預設日期區間 (近兩個月)
 const now = new Date();
 const twoMonthsAgo = new Date();
 twoMonthsAgo.setMonth(now.getMonth() - 2);
@@ -87,13 +91,14 @@ function loadTasks() {
   const end = document.getElementById('dateEnd').value;
   fetch(`${API_LIST}?start=${start}&end=${end}`)
     .then(res => res.json())
-    .then(renderTable);
+    .then(renderTable)
+    .catch(err => console.error("載入失敗:", err));
 }
 
 function renderTable(data) {
   const tbody = document.getElementById("taskBody");
   tbody.innerHTML = data.map(row => {
-    // 時間格式處理：YYYY-MM-DD HH:mm
+    // 時間處理：YYYY-MM-DD HH:mm
     const timeStr = row.createdAt ? row.createdAt.replace('T',' ').substring(0, 16) : '-';
     return `
     <tr id="tr-${row.task_id}">
@@ -143,7 +148,7 @@ function renderTable(data) {
         <textarea class="edit-mode remark" rows="2">${row.remark ?? ''}</textarea>
       </td>
       <td>
-        <div style="display:flex; gap:5px">
+        <div style="display:flex; gap:5px; justify-content:center">
           <button class="btn btn-edit" onclick="toggleEdit('${row.task_id}')">編輯</button>
           <button class="btn btn-save" onclick="saveRow('${row.task_id}')">儲存</button>
           <button class="btn btn-del" onclick="deleteRow('${row.task_id}')">刪除</button>
@@ -153,39 +158,25 @@ function renderTable(data) {
   `}).join('');
 }
 
-// 排序功能實作
+// 排序功能
 function sortTable(n) {
   const table = document.getElementById("taskTable");
   let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-  switching = true;
-  dir = "asc"; 
+  switching = true; dir = "asc"; 
   while (switching) {
-    switching = false;
-    rows = table.rows;
+    switching = false; rows = table.rows;
     for (i = 1; i < (rows.length - 1); i++) {
       shouldSwitch = false;
       x = rows[i].getElementsByTagName("TD")[n];
       y = rows[i + 1].getElementsByTagName("TD")[n];
       if (dir == "asc") {
-        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-          shouldSwitch = true; break;
-        }
+        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) { shouldSwitch = true; break; }
       } else if (dir == "desc") {
-        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-          shouldSwitch = true; break;
-        }
+        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) { shouldSwitch = true; break; }
       }
     }
-    if (shouldSwitch) {
-      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-      switching = true;
-      switchcount ++;      
-    } else {
-      if (switchcount == 0 && dir == "asc") {
-        dir = "desc";
-        switching = true;
-      }
-    }
+    if (shouldSwitch) { rows[i].parentNode.insertBefore(rows[i + 1], rows[i]); switching = true; switchcount ++; } 
+    else { if (switchcount == 0 && dir == "asc") { dir = "desc"; switching = true; } }
   }
 }
 
@@ -215,7 +206,7 @@ function saveRow(id) {
         alert("儲存成功");
         tr.classList.remove('editing');
         loadTasks();
-    }
+    } else { alert("儲存失敗，請檢查網路連線"); }
   });
 }
 
@@ -229,7 +220,7 @@ function deleteRow(id) {
     if(res.ok) {
         document.getElementById(`tr-${id}`).remove();
         alert("已刪除");
-    }
+    } else { alert("刪除失敗"); }
   });
 }
 
