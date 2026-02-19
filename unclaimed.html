@@ -156,10 +156,8 @@ async function loadList() {
 
 function renderCard(item, allRows) {
   const card = document.createElement("div");
-    const hasDifficultHistory = allRows.some(r =>
-    r.mrn === item.mrn &&
-    (r.difficulty === "困難" || r.difficulty === "非常困難")
-  );
+const hasDifficultHistory = item.hasDifficultHistory;
+
   card.className = "card";
 
   const select = document.createElement("select");
