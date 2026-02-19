@@ -152,31 +152,7 @@ async function loadList() {
     } catch (e) {
       throw new Error("回傳不是 JSON：" + raw.slice(0, 200));
     }
-/* =========================
-   建立「困難放置病歷號」Set
-   條件：困難 / 非常困難
-========================= */
-if (!Array.isArray(data)) {
-  throw new Error("API 回傳不是陣列");
-}
-
-/* 再建立 Set */
-const difficultMrnSet = new Set(
-  data
-    .filter(r =>
-      safe(r.difficulty) === "困難" ||
-      safe(r.difficulty) === "非常困難"
-    )
-    .map(r => safe(r.mrn))
-    .filter(mrn => mrn !== "")
-);
-
-    console.log("pending-list response =", data);
-
-    if (!Array.isArray(data)) {
-      throw new Error("API 回傳不是陣列");
-    }
-
+    
     /* =========================
        情境 1：完全沒有任何預約（[]）
     ========================= */
@@ -202,7 +178,7 @@ const difficultMrnSet = new Set(
        情境 3：正常顯示清單
     ========================= */
 rows.forEach(item => {
-  $("list").appendChild(renderCard(item, difficultMrnSet));
+  $("list").appendChild(renderCard(item));
 });
 
   } catch (err) {
@@ -213,7 +189,7 @@ rows.forEach(item => {
 /* =========================
    單筆卡片
 ========================= */
-function renderCard(item, difficultMrnSet) {
+function renderCard(item) {
   const card = document.createElement("div");
   card.className = "card";
 
@@ -225,8 +201,10 @@ function renderCard(item, difficultMrnSet) {
   const claimedBy = safe(item.claimedBy);
   
   // ⭐ 就放在這裡 ⭐
-  const hasDifficultHistory =
-    difficultMrnSet && difficultMrnSet.has(mrn);
+const hasDifficultHistory =
+  item.hasDifficultHistory === 1 ||
+  item.hasDifficultHistory === true;
+
   
   // ✅ waiting time（現在時間 - 起單時間）
   const waitingTime = calcWaitingTime(item.createdAt);
@@ -247,7 +225,7 @@ function renderCard(item, difficultMrnSet) {
                  font-size:16px;
                  cursor:help;
                "
-             >⚠️</span>`
+             >⚠️曾困難放置紀錄</span>`
           : ""
       }
     </div>
