@@ -41,14 +41,6 @@ body {
   flex-wrap: wrap;
 }
 
-.filter-bar input[type="text"] {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  font-size: 13px;
-}
-
-/* ===== table ===== */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -79,7 +71,7 @@ td {
   vertical-align: middle;
 }
 
-/* ===== Status ===== */
+/* ===== Status 標籤 ===== */
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -91,6 +83,13 @@ td {
 .status-pending { background:#fef3c7; color:#92400e; }
 .status-done    { background:#dcfce7; color:#166534; }
 
+/* ===== 編輯模式（必要） ===== */
+.view-mode { display: inline; }
+.edit-mode { display: none; width: 95%; }
+
+.editing .view-mode { display: none; }
+.editing .edit-mode { display: inline; }
+
 /* ===== Button ===== */
 .btn {
   padding: 6px 14px;
@@ -101,7 +100,11 @@ td {
   font-weight: 600;
 }
 .btn-edit { background:#f1f5f9; }
+.btn-save { background:#10B981; color:white; display:none; }
 .btn-del  { background:#fee2e2; color:#b91c1c; }
+
+.editing .btn-save { display:inline-block; }
+.editing .btn-edit { display:none; }
 
 /* ===== RWD ===== */
 @media (max-width: 1000px) {
@@ -150,16 +153,16 @@ td {
 <table id="taskTable">
 <thead>
 <tr>
-  <th onclick="sortTable(0)">起單時間 / 任務編號 ↕</th>
-  <th onclick="sortTable(1)">病人 / 病歷號 ↕</th>
-  <th onclick="sortTable(2)">床號 ↕</th>
-  <th onclick="sortTable(3)">Status ↕</th>
-  <th onclick="sortTable(4)">接單者 ↕</th>
-  <th onclick="sortTable(5)">施打者 ↕</th>
-  <th onclick="sortTable(6)">管路資訊 ↕</th>
-  <th onclick="sortTable(7)">部位 / 血管 ↕</th>
-  <th onclick="sortTable(8)">困難度 ↕</th>
-  <th onclick="sortTable(9)">備註 ↕</th>
+  <th>起單時間 / 任務編號</th>
+  <th>病人 / 病歷號</th>
+  <th>床號</th>
+  <th>Status</th>
+  <th>接單者</th>
+  <th>施打者</th>
+  <th>管路資訊</th>
+  <th>部位 / 血管</th>
+  <th>困難度</th>
+  <th>備註</th>
   <th>操作</th>
 </tr>
 </thead>
@@ -169,9 +172,10 @@ td {
 
 <script>
 const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
+const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/update-task";
 const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/delete-task";
 
-let allRows = [];   // ⭐ 關鍵字搜尋用（必要新增）
+let allRows = [];
 
 function safe(v) {
   return (v === undefined || v === null || v === "") ? "-" : v;
@@ -196,66 +200,119 @@ function loadTasks() {
   fetch(`${API_LIST}?start=${dateStart.value}&end=${dateEnd.value}`)
     .then(res => res.json())
     .then(data => {
-      allRows = data;      // ⭐ 存起來給關鍵字搜尋
+      allRows = data;
       renderTable(allRows);
     });
 }
 
 function renderTable(data) {
-  taskBody.innerHTML = data.map(row => {
-    const timeStr = row.createdAt ? row.createdAt.replace('T',' ').substring(0,16) : "-";
-    return `
+  taskBody.innerHTML = data.map(row => `
 <tr id="tr-${row.task_id}">
-<td data-label="起單/編號">${timeStr}<br><b>${row.task_id}</b></td>
-<td data-label="病人/病歷號"><b>${safe(row.patient_name)}</b><br>MRN: ${safe(row.MRN)}</td>
-<td data-label="床號">${safe(row.bed_no)}</td>
-<td data-label="Status">${renderStatus(row.status)}</td>
-<td data-label="接單者">${safe(row.claimedBy)}</td>
-<td data-label="施打者">${safe(row.operator)}</td>
-<td data-label="管路資訊">${safe(row.catheterType)}<br>${safe(row.catheterLength)} cm</td>
-<td data-label="部位/血管">${safe(row.insertionSite)}/${safe(row.vein)}</td>
-<td data-label="困難度">${safe(row.difficulty)}</td>
-<td data-label="備註">${safe(row.remark)}</td>
+<td>${row.createdAt?.replace('T',' ').substring(0,16) || "-"}<br><b>${row.task_id}</b></td>
+<td><b>${safe(row.patient_name)}</b><br>MRN: ${safe(row.MRN)}</td>
+
+<td>
+  <span class="view-mode">${safe(row.bed_no)}</span>
+  <input class="edit-mode bed_no" value="${safe(row.bed_no)}">
+</td>
+
+<td>
+  <span class="view-mode">${renderStatus(row.status)}</span>
+  <select class="edit-mode status">
+    <option value="待預約" ${row.status==="待預約"?"selected":""}>待預約</option>
+    <option value="待施打" ${row.status==="待施打"?"selected":""}>待施打</option>
+    <option value="完成" ${row.status==="完成"?"selected":""}>完成</option>
+  </select>
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.claimedBy)}</span>
+  <input class="edit-mode claimedBy" value="${safe(row.claimedBy)}">
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.operator)}</span>
+  <input class="edit-mode operator" value="${safe(row.operator)}">
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.catheterType)}<br>${safe(row.catheterLength)} cm</span>
+  <div class="edit-mode">
+    <input class="catheterType" placeholder="種類" value="${safe(row.catheterType)}"><br>
+    <input class="catheterLength" type="number" placeholder="長度" value="${safe(row.catheterLength)}">
+  </div>
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.insertionSite)}/${safe(row.vein)}</span>
+  <div class="edit-mode">
+    <input class="insertionSite" placeholder="部位" value="${safe(row.insertionSite)}"><br>
+    <input class="vein" placeholder="血管" value="${safe(row.vein)}">
+  </div>
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.difficulty)}</span>
+  <select class="edit-mode difficulty">
+    <option value="一般" ${row.difficulty==="一般"?"selected":""}>一般</option>
+    <option value="困難" ${row.difficulty==="困難"?"selected":""}>困難</option>
+  </select>
+</td>
+
+<td>
+  <span class="view-mode">${safe(row.remark)}</span>
+  <textarea class="edit-mode remark">${safe(row.remark)}</textarea>
+</td>
+
 <td>
   <button class="btn btn-edit" onclick="toggleEdit('${row.task_id}')">編輯</button>
+  <button class="btn btn-save" onclick="saveRow('${row.task_id}')">儲存</button>
   <button class="btn btn-del" onclick="deleteRow('${row.task_id}')">刪除</button>
 </td>
-</tr>`;
-  }).join("");
+</tr>
+`).join("");
 }
 
-/* ===== 關鍵字搜尋（必要新增） ===== */
+/* ===== 關鍵字搜尋 ===== */
 function filterKeyword() {
-  const kw = document.getElementById("keywordInput").value.toLowerCase();
-  const filtered = allRows.filter(r =>
-    JSON.stringify(r).toLowerCase().includes(kw)
-  );
-  renderTable(filtered);
+  const kw = keywordInput.value.toLowerCase();
+  renderTable(allRows.filter(r => JSON.stringify(r).toLowerCase().includes(kw)));
 }
 
-/* ===== 排序（原樣） ===== */
-function sortTable(n) {
-  const table = document.getElementById("taskTable");
-  let switching = true, dir = "asc";
-  while (switching) {
-    switching = false;
-    const rows = table.rows;
-    for (let i = 1; i < rows.length - 1; i++) {
-      const x = rows[i].cells[n].innerText.toLowerCase();
-      const y = rows[i + 1].cells[n].innerText.toLowerCase();
-      if ((dir === "asc" && x > y) || (dir === "desc" && x < y)) {
-        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-        switching = true;
-        break;
-      }
-    }
-    if (!switching && dir === "asc") { dir = "desc"; switching = true; }
-  }
-}
-
-/* ===== 操作 ===== */
+/* ===== 編輯 / 儲存（關鍵修正） ===== */
 function toggleEdit(id) {
-  alert("編輯功能尚未啟用（目前僅示範）");
+  document.getElementById(`tr-${id}`).classList.add("editing");
+}
+
+function saveRow(id) {
+  const tr = document.getElementById(`tr-${id}`);
+  const payload = {
+    task_id: id,
+    bed_no: tr.querySelector(".bed_no").value,
+    status: tr.querySelector(".status").value,
+    claimedBy: tr.querySelector(".claimedBy").value,
+    operator: tr.querySelector(".operator").value,
+    catheterType: tr.querySelector(".catheterType").value,
+    catheterLength: tr.querySelector(".catheterLength").value,
+    insertionSite: tr.querySelector(".insertionSite").value,
+    vein: tr.querySelector(".vein").value,
+    difficulty: tr.querySelector(".difficulty").value,
+    remark: tr.querySelector(".remark").value
+  };
+
+  fetch(API_UPDATE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(res => {
+    if (res.ok) {
+      alert("儲存成功");
+      tr.classList.remove("editing");
+      loadTasks();
+    } else {
+      alert("儲存失敗");
+    }
+  });
 }
 
 function deleteRow(id) {
