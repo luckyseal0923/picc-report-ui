@@ -38,8 +38,17 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
+.filter-bar input[type="text"] {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+
+/* ===== table ===== */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -70,7 +79,7 @@ td {
   vertical-align: middle;
 }
 
-/* ===== Status 標籤（必要新增） ===== */
+/* ===== Status ===== */
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -78,10 +87,9 @@ td {
   font-size: 12px;
   font-weight: 600;
 }
-
-.status-booking { background:#e0f2fe; color:#0369a1; }   /* 待預約 */
-.status-pending { background:#fef3c7; color:#92400e; }   /* 待施打 */
-.status-done    { background:#dcfce7; color:#166534; }   /* 完成 */
+.status-booking { background:#e0f2fe; color:#0369a1; }
+.status-pending { background:#fef3c7; color:#92400e; }
+.status-done    { background:#dcfce7; color:#166534; }
 
 /* ===== Button ===== */
 .btn {
@@ -92,7 +100,6 @@ td {
   font-size: 13px;
   font-weight: 600;
 }
-
 .btn-edit { background:#f1f5f9; }
 .btn-del  { background:#fee2e2; color:#b91c1c; }
 
@@ -134,6 +141,7 @@ td {
     <input type="date" id="dateStart">
     <span>至</span>
     <input type="date" id="dateEnd">
+    <input type="text" id="keywordInput" placeholder="🔍 關鍵字搜尋…" oninput="filterKeyword()">
     <button class="btn" style="background:var(--primary); color:white" onclick="loadTasks()">查詢區間</button>
   </div>
 </div>
@@ -163,12 +171,12 @@ td {
 const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/delete-task";
 
-/* ===== 安全顯示（必要） ===== */
+let allRows = [];   // ⭐ 關鍵字搜尋用（必要新增）
+
 function safe(v) {
   return (v === undefined || v === null || v === "") ? "-" : v;
 }
 
-/* ===== Status 標籤（必要） ===== */
 function renderStatus(status) {
   if (!status || status === "-") return "-";
   if (status === "待預約") return `<span class="status status-booking">待預約</span>`;
@@ -187,7 +195,10 @@ dateEnd.value   = now.toISOString().split('T')[0];
 function loadTasks() {
   fetch(`${API_LIST}?start=${dateStart.value}&end=${dateEnd.value}`)
     .then(res => res.json())
-    .then(renderTable);
+    .then(data => {
+      allRows = data;      // ⭐ 存起來給關鍵字搜尋
+      renderTable(allRows);
+    });
 }
 
 function renderTable(data) {
@@ -213,7 +224,16 @@ function renderTable(data) {
   }).join("");
 }
 
-/* ===== 排序（原樣保留） ===== */
+/* ===== 關鍵字搜尋（必要新增） ===== */
+function filterKeyword() {
+  const kw = document.getElementById("keywordInput").value.toLowerCase();
+  const filtered = allRows.filter(r =>
+    JSON.stringify(r).toLowerCase().includes(kw)
+  );
+  renderTable(filtered);
+}
+
+/* ===== 排序（原樣） ===== */
 function sortTable(n) {
   const table = document.getElementById("taskTable");
   let switching = true, dir = "asc";
@@ -233,7 +253,7 @@ function sortTable(n) {
   }
 }
 
-/* ===== 操作（補齊，必要） ===== */
+/* ===== 操作 ===== */
 function toggleEdit(id) {
   alert("編輯功能尚未啟用（目前僅示範）");
 }
