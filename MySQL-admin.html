@@ -3,126 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PICC 後臺管理系統 - 最終演示版</title>
+<title>PICC 後臺管理系統</title>
 
 <style>
-  :root {
-    --primary: #10B981;
-    --bg: #f1f5f9;
-    --text: #334155;
-    --border: #e2e8f0;
-    --header: #e2e8f0;
-  }
+:root {
+  --primary: #10B981;
+  --bg: #f1f5f9;
+  --text: #334155;
+  --border: #e2e8f0;
+}
 
-  body {
-    font-family: -apple-system, system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 20px;
-    margin: 0;
-  }
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  margin: 0;
+}
 
-  .header {
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.filter-bar {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #e2e8f0;
+  padding: 14px;
+  font-size: 13px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* ===== Status 標籤（必要新增） ===== */
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-booking { background:#e0f2fe; color:#0369a1; }   /* 待預約 */
+.status-pending { background:#fef3c7; color:#92400e; }   /* 待施打 */
+.status-done    { background:#dcfce7; color:#166534; }   /* 完成 */
+
+/* ===== Button ===== */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-edit { background:#f1f5f9; }
+.btn-del  { background:#fee2e2; color:#b91c1c; }
+
+/* ===== RWD ===== */
+@media (max-width: 1000px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; }
+  tr {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+  }
+  td {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    gap: 10px;
-  }
-
-  .filter-bar {
-    background: white;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  /* ✅ 不超出畫面 */
-  .table-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto;
-  }
-
-  th {
-    background: var(--header);
-    padding: 14px;
-    font-size: 13px;
-    text-align: left;
-    color: #1e293b;
-    border-bottom: 2px solid var(--border);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    vertical-align: middle;
-  }
-
-  .view-mode { display: inline-block; }
-  .edit-mode { display: none; width: 95%; padding: 6px; border: 1px solid var(--primary); border-radius: 4px; }
-
-  .editing .view-mode { display: none; }
-  .editing .edit-mode { display: block; }
-
-  .btn {
-    padding: 6px 14px;
-    border-radius: 6px;
+    padding: 10px 5px;
     border: none;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
+    border-bottom: 1px dashed #eee;
+    text-align: right;
   }
-
-  .btn-edit { background: #f1f5f9; color: #475569; }
-  .btn-save { background: var(--primary); color: white; display: none; }
-  .btn-del { background: #fee2e2; color: #b91c1c; }
-
-  .editing .btn-save { display: inline-block; }
-  .editing .btn-edit { display: none; }
-
-  @media (max-width: 1000px) {
-    table, thead, tbody, th, td, tr { display: block; }
-    thead { display: none; }
-    tr {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: white;
-    }
-    td {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 5px;
-      border: none;
-      border-bottom: 1px dashed #eee;
-      text-align: right;
-    }
-    td::before {
-      content: attr(data-label);
-      font-weight: bold;
-      color: #64748b;
-      text-align: left;
-    }
-    td:last-child { border: none; }
+  td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #64748b;
+    text-align: left;
   }
+  td:last-child { border: none; }
+}
 </style>
 </head>
 
@@ -145,12 +145,12 @@
   <th onclick="sortTable(0)">起單時間 / 任務編號 ↕</th>
   <th onclick="sortTable(1)">病人 / 病歷號 ↕</th>
   <th onclick="sortTable(2)">床號 ↕</th>
-  <th onclick="sortTable(3)">接單者 ↕</th>
-  <th onclick="sortTable(4)">施打者 ↕</th>
-  <th onclick="sortTable(5)">管路資訊 ↕</th>
-  <th onclick="sortTable(6)">部位 / 血管 ↕</th>
-  <th onclick="sortTable(7)">困難度 ↕</th>
-  <th onclick="sortTable(8)">Status ↕</th>
+  <th onclick="sortTable(3)">Status ↕</th>
+  <th onclick="sortTable(4)">接單者 ↕</th>
+  <th onclick="sortTable(5)">施打者 ↕</th>
+  <th onclick="sortTable(6)">管路資訊 ↕</th>
+  <th onclick="sortTable(7)">部位 / 血管 ↕</th>
+  <th onclick="sortTable(8)">困難度 ↕</th>
   <th onclick="sortTable(9)">備註 ↕</th>
   <th>操作</th>
 </tr>
@@ -161,14 +161,23 @@
 
 <script>
 const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
-const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/update-task";
 const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/delete-task";
 
-/* ✅ 統一 undefined 顯示為 "-" */
+/* ===== 安全顯示（必要） ===== */
 function safe(v) {
   return (v === undefined || v === null || v === "") ? "-" : v;
 }
 
+/* ===== Status 標籤（必要） ===== */
+function renderStatus(status) {
+  if (!status || status === "-") return "-";
+  if (status === "待預約") return `<span class="status status-booking">待預約</span>`;
+  if (status === "待施打") return `<span class="status status-pending">待施打</span>`;
+  if (status === "完成")   return `<span class="status status-done">完成</span>`;
+  return safe(status);
+}
+
+/* ===== 日期預設 ===== */
 const now = new Date();
 const twoMonthsAgo = new Date();
 twoMonthsAgo.setMonth(now.getMonth() - 2);
@@ -189,15 +198,12 @@ function renderTable(data) {
 <td data-label="起單/編號">${timeStr}<br><b>${row.task_id}</b></td>
 <td data-label="病人/病歷號"><b>${safe(row.patient_name)}</b><br>MRN: ${safe(row.MRN)}</td>
 <td data-label="床號">${safe(row.bed_no)}</td>
+<td data-label="Status">${renderStatus(row.status)}</td>
 <td data-label="接單者">${safe(row.claimedBy)}</td>
 <td data-label="施打者">${safe(row.operator)}</td>
-<td data-label="管路資訊">
-  ${safe(row.catheterType)}<br>
-  ${safe(row.catheterLength)} cm
-</td>
+<td data-label="管路資訊">${safe(row.catheterType)}<br>${safe(row.catheterLength)} cm</td>
 <td data-label="部位/血管">${safe(row.insertionSite)}/${safe(row.vein)}</td>
 <td data-label="困難度">${safe(row.difficulty)}</td>
-<td data-label="Status">${safe(row.status)}</td>
 <td data-label="備註">${safe(row.remark)}</td>
 <td>
   <button class="btn btn-edit" onclick="toggleEdit('${row.task_id}')">編輯</button>
@@ -207,6 +213,7 @@ function renderTable(data) {
   }).join("");
 }
 
+/* ===== 排序（原樣保留） ===== */
 function sortTable(n) {
   const table = document.getElementById("taskTable");
   let switching = true, dir = "asc";
@@ -224,6 +231,27 @@ function sortTable(n) {
     }
     if (!switching && dir === "asc") { dir = "desc"; switching = true; }
   }
+}
+
+/* ===== 操作（補齊，必要） ===== */
+function toggleEdit(id) {
+  alert("編輯功能尚未啟用（目前僅示範）");
+}
+
+function deleteRow(id) {
+  if (!confirm("確定要刪除這筆任務嗎？")) return;
+  fetch(API_DELETE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task_id: id })
+  }).then(res => {
+    if (res.ok) {
+      document.getElementById(`tr-${id}`)?.remove();
+      alert("已刪除");
+    } else {
+      alert("刪除失敗");
+    }
+  });
 }
 
 window.onload = loadTasks;
