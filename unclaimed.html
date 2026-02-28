@@ -139,17 +139,35 @@ async function loadList() {
 
   try {
     const res = await fetch(API_LIST, { cache: "no-store" });
+
+    // ⛔ HTTP 本身就失敗（例如 500、404）
+    if (!res.ok) {
+      throw new Error("HTTP error");
+    }
+
     const data = await res.json();
 
-    const allRows = data; // ⭐ 保留全部歷史
+    // ⛔ API 回傳格式不正確（不是陣列）
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid data format");
+    }
+
+    // ⭐ 只篩選「待預約」
     const rows = data.filter(r => r.status === "待預約");
-    if (!rows.length) {
-      setMsg("empty", "📭 目前沒有待預約案件");
+
+    // ✅ 沒有待預約案件（正常狀況）
+    if (rows.length === 0) {
+      setMsg("empty", "📭 目前沒有待預約施打之對象");
       return;
     }
 
-      rows.forEach(item => $("list").appendChild(renderCard(item, allRows)));
-  } catch {
+    // ✅ 有資料才 render
+    rows.forEach(item => {
+      $("list").appendChild(renderCard(item, data));
+    });
+
+  } catch (e) {
+    console.error(e);
     setMsg("error", "❌ 無法載入待預約清單");
   }
 }
