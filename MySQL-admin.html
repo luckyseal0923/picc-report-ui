@@ -24,10 +24,44 @@ body {
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
   margin-bottom: 20px;
-  gap: 10px;
+  gap: 16px;
+}
+
+.header-title-wrap {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-left: 6px solid #1e3a8a;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  min-width: 320px;
+}
+
+.header-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.2px;
+}
+
+.header-subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .filter-bar {
@@ -49,9 +83,189 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
+.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.list-meta {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.pager-left,
+.pager-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.select-sm {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+}
+
+.page-info {
+  font-size: 13px;
+  color: #475569;
+}
+
+.btn-page {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-page:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.page-number,
+.page-ellipsis {
+  min-width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.page-number {
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.page-number.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.page-ellipsis {
+  color: #64748b;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-backdrop.show {
+  display: flex;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.modal-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.modal-field input {
+  width: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th {
@@ -60,7 +274,6 @@ th {
   font-size: 13px;
   text-align: left;
   border-bottom: 2px solid var(--border);
-  cursor: pointer;
   white-space: nowrap;
 }
 
@@ -69,9 +282,9 @@ td {
   border-bottom: 1px solid var(--border);
   font-size: 14px;
   vertical-align: middle;
+  word-break: break-word;
 }
 
-/* ===== Status 標籤 ===== */
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -79,18 +292,16 @@ td {
   font-size: 12px;
   font-weight: 600;
 }
-.status-booking { background:#e0f2fe; color:#0369a1; }
-.status-pending { background:#fef3c7; color:#92400e; }
-.status-done    { background:#dcfce7; color:#166534; }
+.status-booking { background: #e0f2fe; color: #0369a1; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-done { background: #dcfce7; color: #166534; }
 
-/* ===== 編輯模式（必要） ===== */
 .view-mode { display: inline; }
 .edit-mode { display: none; width: 95%; }
 
 .editing .view-mode { display: none; }
 .editing .edit-mode { display: inline; }
 
-/* ===== Button ===== */
 .btn {
   padding: 6px 14px;
   border-radius: 6px;
@@ -99,14 +310,13 @@ td {
   font-size: 13px;
   font-weight: 600;
 }
-.btn-edit { background:#f1f5f9; }
-.btn-save { background:#10B981; color:white; display:none; }
-.btn-del  { background:#fee2e2; color:#b91c1c; }
+.btn-edit { background: #f1f5f9; }
+.btn-save { background: #10B981; color: white; display: none; }
+.btn-del { background: #fee2e2; color: #b91c1c; }
 
-.editing .btn-save { display:inline-block; }
-.editing .btn-edit { display:none; }
+.editing .btn-save { display: inline-block; }
+.editing .btn-edit { display: none; }
 
-/* ===== RWD ===== */
 @media (max-width: 1000px) {
   table, thead, tbody, th, td, tr { display: block; }
   thead { display: none; }
@@ -124,12 +334,14 @@ td {
     border: none;
     border-bottom: 1px dashed #eee;
     text-align: right;
+    gap: 12px;
   }
   td::before {
     content: attr(data-label);
     font-weight: bold;
     color: #64748b;
     text-align: left;
+    flex: 0 0 110px;
   }
   td:last-child { border: none; }
 }
@@ -139,43 +351,113 @@ td {
 <body>
 
 <div class="header">
-  <h2>📋 PICC 後臺管理系統</h2>
+  <div class="header-title-wrap">
+    <div class="header-kicker">臺北市立萬芳醫院｜PICC 後臺管理模組</div>
+    <h2 class="header-title">PICC 後臺管理系統</h2>
+    <div class="header-subtitle">院內 PICC 任務管理與案件追蹤</div>
+  </div>
   <div class="filter-bar">
     <input type="date" id="dateStart">
     <span>至</span>
     <input type="date" id="dateEnd">
     <input type="text" id="keywordInput" placeholder="🔍 關鍵字搜尋…" oninput="filterKeyword()">
-    <button class="btn" style="background:var(--primary); color:white" onclick="loadTasks()">查詢區間</button>
+    <button class="btn" style="background:var(--primary); color:white" onclick="loadTasks(true)">查詢區間</button>
+    <button class="btn" style="background:#0f172a; color:white" onclick="openCsvModal()">下載 CSV</button>
+  </div>
+</div>
+
+<div class="list-toolbar">
+  <div class="toolbar-actions">
+    <div class="list-meta" id="listMeta">共 0 筆案件</div>
+  </div>
+  <div class="pager-left">
+    <label for="pageSizeSelect" style="font-size:13px; color:#475569;">每頁顯示</label>
+    <select id="pageSizeSelect" class="select-sm" onchange="changePageSize()">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30" selected>30</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    <span style="font-size:13px; color:#475569;">筆</span>
   </div>
 </div>
 
 <div class="table-container">
-<table id="taskTable">
-<thead>
-<tr>
-  <th>起單時間 / 任務編號</th>
-  <th>病人 / 病歷號</th>
-  <th>床號</th>
-  <th>Status</th>
-  <th>接單者</th>
-  <th>施打者</th>
-  <th>管路資訊</th>
-  <th>部位 / 血管</th>
-  <th>困難度</th>
-  <th>備註</th>
-  <th>操作</th>
-</tr>
-</thead>
-<tbody id="taskBody"></tbody>
-</table>
+  <table id="taskTable">
+    <colgroup>
+      <col style="width: 15%;">
+      <col style="width: 10%;">
+      <col style="width: 12%;">
+      <col style="width: 8%;">
+      <col style="width: 9%;">
+      <col style="width: 9%;">
+      <col style="width: 11%;">
+      <col style="width: 10%;">
+      <col style="width: 7%;">
+      <col style="width: 13%;">
+      <col style="width: 10%;">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>起單時間 / 任務編號</th>
+        <th>病人姓名</th>
+        <th>床號 / 病歷號</th>
+        <th>Status</th>
+        <th>接單者</th>
+        <th>施打者</th>
+        <th>管路資訊</th>
+        <th>部位 / 血管</th>
+        <th>困難度</th>
+        <th>備註</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="taskBody"></tbody>
+  </table>
+</div>
+
+<div class="pager">
+  <div class="pager-left">
+    <span class="page-info" id="pageInfo">第 1 / 1 頁</span>
+  </div>
+  <div class="pager-right">
+    <button class="btn-page" id="prevPageBtn" onclick="goToPage(currentPage - 1)">上一頁</button>
+    <div class="page-numbers" id="pageNumbers"></div>
+    <button class="btn-page" id="nextPageBtn" onclick="goToPage(currentPage + 1)">下一頁</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="csvModal">
+  <div class="modal-card">
+    <div class="modal-title">下載 CSV</div>
+    <div class="modal-desc">請設定要下載的案件查詢期間。留白可下載目前畫面已載入的案件資料。</div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <label for="csvDateStart">開始日期</label>
+        <input type="date" id="csvDateStart">
+      </div>
+      <div class="modal-field">
+        <label for="csvDateEnd">結束日期</label>
+        <input type="date" id="csvDateEnd">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="background:#e2e8f0; color:#334155" onclick="closeCsvModal()">取消</button>
+      <button class="btn" style="background:#0f172a; color:white" onclick="confirmDownloadCSV()">下載</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const API_LIST   = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
+const API_LIST = "https://chihwei-n8n.zeabur.app/webhook/admin/tasks";
 const API_UPDATE = "https://chihwei-n8n.zeabur.app/webhook/update-task";
 const API_DELETE = "https://chihwei-n8n.zeabur.app/webhook/delete-task";
 
 let allRows = [];
+let filteredRows = [];
+let currentPage = 1;
+let pageSize = 30;
 
 function safe(v) {
   return (v === undefined || v === null || v === "") ? "-" : v;
@@ -183,121 +465,368 @@ function safe(v) {
 
 function renderStatus(status) {
   if (!status || status === "-") return "-";
-  if (status === "待預約") return `<span class="status status-booking">待預約</span>`;
-  if (status === "待施打") return `<span class="status status-pending">待施打</span>`;
-  if (status === "完成")   return `<span class="status status-done">完成</span>`;
+  if (status === "待預約") return '<span class="status status-booking">待預約</span>';
+  if (status === "待施打") return '<span class="status status-pending">待施打</span>';
+  if (status === "完成") return '<span class="status status-done">完成</span>';
   return safe(status);
 }
 
-/* ===== 日期預設 ===== */
-const now = new Date();
-const twoMonthsAgo = new Date();
-twoMonthsAgo.setMonth(now.getMonth() - 2);
-dateStart.value = twoMonthsAgo.toISOString().split('T')[0];
-dateEnd.value   = now.toISOString().split('T')[0];
+function formatDateLocal(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-function loadTasks() {
-  fetch(`${API_LIST}?start=${dateStart.value}&end=${dateEnd.value}`)
+function formatDisplayDateTime(value) {
+  if (!value) return "-";
+  return String(value).substring(0, 16).replace("T", " ").replace(/-/g, "/");
+}
+
+function escapeHTML(value) {
+  const str = value === undefined || value === null ? "" : String(value);
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function runSelfTests() {
+  console.assert(formatDateLocal(new Date(2026, 2, 1)) === "2026-03-01", "formatDateLocal 測試失敗");
+  console.assert(formatDisplayDateTime("2026-03-17T13:21:00") === "2026/03/17 13:21", "formatDisplayDateTime 測試失敗");
+  console.assert(escapeCSV('a"b') === '"a""b"', "escapeCSV 測試失敗");
+  console.assert(renderPageNumbersForTest(10, 1) === "1,2,3,4,5,...,10", "頁碼測試 1 失敗");
+  console.assert(renderPageNumbersForTest(10, 8) === "1,...,6,7,8,9,10", "頁碼測試 2 失敗");
+}
+
+function renderPageNumbersForTest(totalPages, page) {
+  const oldCurrentPage = currentPage;
+  currentPage = page;
+  const html = renderPageNumbers(totalPages);
+  currentPage = oldCurrentPage;
+  return html
+    .replace(/<button[^>]*>(\d+)<\/button>/g, "$1")
+    .replace(/<span[^>]*>\.\.\.<\/span>/g, "...")
+    .replace(/\s+/g, "")
+    .replace(/></g, ",")
+    .replace(/,$/, "");
+}
+
+const now = new Date();
+const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+document.getElementById("dateStart").value = formatDateLocal(firstDayOfMonth);
+document.getElementById("dateEnd").value = formatDateLocal(now);
+
+function loadTasks(useDateFilter = false) {
+  const dateStartEl = document.getElementById("dateStart");
+  const dateEndEl = document.getElementById("dateEnd");
+
+  const url = useDateFilter
+    ? `${API_LIST}?start=${dateStartEl.value}&end=${dateEndEl.value}`
+    : API_LIST;
+
+  console.log("loadTasks url =", url);
+
+  fetch(url)
     .then(res => res.json())
     .then(data => {
-      allRows = data;
-      renderTable(allRows);
+      console.log("API 回傳資料 =", data);
+      allRows = Array.isArray(data) ? data : [];
+      filteredRows = [...allRows];
+      currentPage = 1;
+      renderTable();
+    })
+    .catch(err => {
+      console.error("loadTasks error =", err);
+      allRows = [];
+      filteredRows = [];
+      currentPage = 1;
+      renderTable();
     });
 }
 
-function renderTable(data) {
-  taskBody.innerHTML = data.map(row => `
-<tr id="tr-${row.task_id}">
-<td>${row.createdAt?.replace('T',' ').substring(0,16) || "-"}<br><b>${row.task_id}</b></td>
-<td><b>${safe(row.patient_name)}</b><br>MRN: ${safe(row.MRN)}</td>
+function renderTable() {
+  const taskBody = document.getElementById("taskBody");
+  const listMeta = document.getElementById("listMeta");
+  const pageInfo = document.getElementById("pageInfo");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
+  const pageNumbers = document.getElementById("pageNumbers");
 
-<td>
-  <span class="view-mode">${safe(row.bed_no)}</span>
-  <input class="edit-mode bed_no" value="${safe(row.bed_no)}">
-</td>
+  const total = filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-<td>
-  <span class="view-mode">${renderStatus(row.status)}</span>
-  <select class="edit-mode status">
-    <option value="待預約" ${row.status==="待預約"?"selected":""}>待預約</option>
-    <option value="待施打" ${row.status==="待施打"?"selected":""}>待施打</option>
-    <option value="完成" ${row.status==="完成"?"selected":""}>完成</option>
-  </select>
-</td>
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
 
-<td>
-  <span class="view-mode">${safe(row.claimedBy)}</span>
-  <input class="edit-mode claimedBy" value="${safe(row.claimedBy)}">
-</td>
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pageRows = filteredRows.slice(startIndex, endIndex);
 
-<td>
-  <span class="view-mode">${safe(row.operator)}</span>
-  <input class="edit-mode operator" value="${safe(row.operator)}">
-</td>
+  listMeta.textContent = `共 ${total} 筆案件`;
+  pageInfo.textContent = `第 ${currentPage} / ${totalPages} 頁`;
+  prevPageBtn.disabled = currentPage === 1;
+  nextPageBtn.disabled = currentPage === totalPages;
+  pageNumbers.innerHTML = renderPageNumbers(totalPages);
 
-<td>
-  <span class="view-mode">${safe(row.catheterType)}<br>${safe(row.catheterLength)} cm</span>
-  <div class="edit-mode">
-    <input class="catheterType" placeholder="種類" value="${safe(row.catheterType)}"><br>
-    <input class="catheterLength" type="number" placeholder="長度" value="${safe(row.catheterLength)}">
-  </div>
-</td>
+  if (pageRows.length === 0) {
+    taskBody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:24px; color:#64748b;">目前沒有符合條件的案件</td></tr>';
+    return;
+  }
 
-<td>
-  <span class="view-mode">${safe(row.insertionSite)}/${safe(row.vein)}</span>
-  <div class="edit-mode">
-    <input class="insertionSite" placeholder="部位" value="${safe(row.insertionSite)}"><br>
-    <input class="vein" placeholder="血管" value="${safe(row.vein)}">
-  </div>
-</td>
+  taskBody.innerHTML = pageRows.map(row => {
+    const taskId = escapeHTML(row.task_id || "");
+    const patientName = escapeHTML(safe(row.patient_name));
+    const bedNo = escapeHTML(safe(row.bed_no));
+    const mrn = escapeHTML(safe(row.MRN));
+    const claimedBy = escapeHTML(safe(row.claimedBy));
+    const operator = escapeHTML(safe(row.operator));
+    const catheterType = escapeHTML(safe(row.catheterType));
+    const catheterLength = escapeHTML(safe(row.catheterLength));
+    const insertionSite = escapeHTML(safe(row.insertionSite));
+    const vein = escapeHTML(safe(row.vein));
+    const difficulty = escapeHTML(safe(row.difficulty));
+    const remark = escapeHTML(safe(row.remark));
+    const createdAt = escapeHTML(formatDisplayDateTime(row.createdAt));
+    const statusHtml = renderStatus(row.status);
 
-<td>
-  <span class="view-mode">${safe(row.difficulty)}</span>
-  <select class="edit-mode difficulty">
-    <option value="一般" ${row.difficulty==="一般"?"selected":""}>一般</option>
-    <option value="困難" ${row.difficulty==="困難"?"selected":""}>困難</option>
-  </select>
-</td>
-
-<td>
-  <span class="view-mode">${safe(row.remark)}</span>
-  <textarea class="edit-mode remark">${safe(row.remark)}</textarea>
-</td>
-
-<td>
-  <button class="btn btn-edit" onclick="toggleEdit('${row.task_id}')">編輯</button>
-  <button class="btn btn-save" onclick="saveRow('${row.task_id}')">儲存</button>
-  <button class="btn btn-del" onclick="deleteRow('${row.task_id}')">刪除</button>
-</td>
-</tr>
-`).join("");
+    return `
+<tr id="tr-${taskId}">
+  <td data-label="起單時間 / 任務編號">
+    <div style="font-size:16px; font-weight:800; color:#0f172a; line-height:1.4;">${createdAt}</div>
+    <div style="margin-top:4px; font-size:12px; color:#64748b; font-weight:600;">${taskId}</div>
+  </td>
+  <td data-label="病人姓名"><b style="font-size:16px; font-weight:800; color:#0f172a;">${patientName}</b></td>
+  <td data-label="床號 / 病歷號">
+    <span class="view-mode">床號：${bedNo}<br>病歷號：${mrn}</span>
+    <div class="edit-mode">
+      <input class="bed_no" value="${bedNo}" placeholder="床號">
+      <div style="margin-top:6px; font-size:13px; color:#64748b;">病歷號：${mrn}</div>
+    </div>
+  </td>
+  <td data-label="Status">
+    <span class="view-mode">${statusHtml}</span>
+    <select class="edit-mode status">
+      <option value="待預約" ${row.status === "待預約" ? "selected" : ""}>待預約</option>
+      <option value="待施打" ${row.status === "待施打" ? "selected" : ""}>待施打</option>
+      <option value="完成" ${row.status === "完成" ? "selected" : ""}>完成</option>
+    </select>
+  </td>
+  <td data-label="接單者">
+    <span class="view-mode">${claimedBy}</span>
+    <input class="edit-mode claimedBy" value="${claimedBy}">
+  </td>
+  <td data-label="施打者">
+    <span class="view-mode">${operator}</span>
+    <input class="edit-mode operator" value="${operator}">
+  </td>
+  <td data-label="管路資訊">
+    <span class="view-mode">${catheterType}<br>${catheterLength} cm</span>
+    <div class="edit-mode">
+      <input class="catheterType" placeholder="種類" value="${catheterType}"><br>
+      <input class="catheterLength" type="number" placeholder="長度" value="${catheterLength}">
+    </div>
+  </td>
+  <td data-label="部位 / 血管">
+    <span class="view-mode">${insertionSite}/${vein}</span>
+    <div class="edit-mode">
+      <input class="insertionSite" placeholder="部位" value="${insertionSite}"><br>
+      <input class="vein" placeholder="血管" value="${vein}">
+    </div>
+  </td>
+  <td data-label="困難度">
+    <span class="view-mode">${difficulty}</span>
+    <select class="edit-mode difficulty">
+      <option value="一般" ${row.difficulty === "一般" ? "selected" : ""}>一般</option>
+      <option value="困難" ${row.difficulty === "困難" ? "selected" : ""}>困難</option>
+    </select>
+  </td>
+  <td data-label="備註">
+    <span class="view-mode">${remark}</span>
+    <textarea class="edit-mode remark">${remark}</textarea>
+  </td>
+  <td data-label="操作">
+    <button class="btn btn-edit" onclick="toggleEdit('${taskId}')">編輯</button>
+    <button class="btn btn-save" onclick="saveRow('${taskId}')">儲存</button>
+    <button class="btn btn-del" onclick="deleteRow('${taskId}')">刪除</button>
+  </td>
+</tr>`;
+  }).join("");
 }
 
-/* ===== 關鍵字搜尋 ===== */
 function filterKeyword() {
-  const kw = keywordInput.value.toLowerCase();
-  renderTable(allRows.filter(r => JSON.stringify(r).toLowerCase().includes(kw)));
+  const kw = document.getElementById("keywordInput").value.toLowerCase();
+  filteredRows = allRows.filter(r => JSON.stringify(r).toLowerCase().includes(kw));
+  currentPage = 1;
+  renderTable();
 }
 
-/* ===== 編輯 / 儲存（關鍵修正） ===== */
+function changePageSize() {
+  pageSize = Number(document.getElementById("pageSizeSelect").value);
+  currentPage = 1;
+  renderTable();
+}
+
+function goToPage(page) {
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderTable();
+}
+
+function renderPageNumbers(totalPages) {
+  if (totalPages <= 1) return "";
+
+  const pages = [];
+
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+
+    if (currentPage <= 4) {
+      pages.push(2, 3, 4, 5, "...", totalPages);
+    } else if (currentPage >= totalPages - 3) {
+      pages.push("...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push("...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+    }
+  }
+
+  return pages.map(p => {
+    if (p === "...") {
+      return '<span class="page-ellipsis">...</span>';
+    }
+    return `<button class="page-number ${p === currentPage ? "active" : ""}" onclick="goToPage(${p})">${p}</button>`;
+  }).join("");
+}
+
+function escapeCSV(value) {
+  const str = value === undefined || value === null ? "" : String(value);
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+function openCsvModal() {
+  document.getElementById("csvDateStart").value = document.getElementById("dateStart").value || "";
+  document.getElementById("csvDateEnd").value = document.getElementById("dateEnd").value || "";
+  document.getElementById("csvModal").classList.add("show");
+}
+
+function closeCsvModal() {
+  document.getElementById("csvModal").classList.remove("show");
+}
+
+function buildCSVAndDownload(rows) {
+  if (!rows.length) {
+    alert("目前沒有可下載的案件資料");
+    return;
+  }
+
+  const headers = [
+    "起單時間",
+    "任務編號",
+    "病人姓名",
+    "床號",
+    "病歷號",
+    "Status",
+    "接單者",
+    "施打者",
+    "管路種類",
+    "管路長度(cm)",
+    "部位",
+    "血管",
+    "困難度",
+    "備註"
+  ];
+
+  const csvRows = rows.map(row => [
+    formatDisplayDateTime(row.createdAt),
+    row.task_id || "",
+    row.patient_name || "",
+    row.bed_no || "",
+    row.MRN || "",
+    row.status || "",
+    row.claimedBy || "",
+    row.operator || "",
+    row.catheterType || "",
+    row.catheterLength || "",
+    row.insertionSite || "",
+    row.vein || "",
+    row.difficulty || "",
+    row.remark || ""
+  ]);
+
+  const csvContent = [headers, ...csvRows]
+    .map(row => row.map(escapeCSV).join(","))
+    .join("\n");
+
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const today = formatDateLocal(new Date());
+
+  a.href = url;
+  a.download = `PICC案件清單_${today}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function confirmDownloadCSV() {
+  const start = document.getElementById("csvDateStart").value;
+  const end = document.getElementById("csvDateEnd").value;
+
+  if ((start && !end) || (!start && end)) {
+    alert("請同時選擇開始日期與結束日期");
+    return;
+  }
+
+  if (!start && !end) {
+    closeCsvModal();
+    buildCSVAndDownload(filteredRows);
+    return;
+  }
+
+  const url = `${API_LIST}?start=${start}&end=${end}`;
+  console.log("download csv url =", url);
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      console.log("CSV API 回傳資料 =", data);
+      const rows = Array.isArray(data) ? data : [];
+      closeCsvModal();
+      buildCSVAndDownload(rows);
+    })
+    .catch(err => {
+      console.error("download csv error =", err);
+      alert("下載 CSV 失敗");
+    });
+}
+
 function toggleEdit(id) {
   document.getElementById(`tr-${id}`).classList.add("editing");
 }
 
 function saveRow(id) {
   const tr = document.getElementById(`tr-${id}`);
+  if (!tr) return;
+
   const payload = {
     task_id: id,
-    bed_no: tr.querySelector(".bed_no").value,
-    status: tr.querySelector(".status").value,
-    claimedBy: tr.querySelector(".claimedBy").value,
-    operator: tr.querySelector(".operator").value,
-    catheterType: tr.querySelector(".catheterType").value,
-    catheterLength: tr.querySelector(".catheterLength").value,
-    insertionSite: tr.querySelector(".insertionSite").value,
-    vein: tr.querySelector(".vein").value,
-    difficulty: tr.querySelector(".difficulty").value,
-    remark: tr.querySelector(".remark").value
+    bed_no: tr.querySelector(".bed_no")?.value || "",
+    status: tr.querySelector(".status")?.value || "",
+    claimedBy: tr.querySelector(".claimedBy")?.value || "",
+    operator: tr.querySelector(".operator")?.value || "",
+    catheterType: tr.querySelector(".catheterType")?.value || "",
+    catheterLength: tr.querySelector(".catheterLength")?.value || "",
+    insertionSite: tr.querySelector(".insertionSite")?.value || "",
+    vein: tr.querySelector(".vein")?.value || "",
+    difficulty: tr.querySelector(".difficulty")?.value || "",
+    remark: tr.querySelector(".remark")?.value || ""
   };
 
   fetch(API_UPDATE, {
@@ -308,15 +837,19 @@ function saveRow(id) {
     if (res.ok) {
       alert("儲存成功");
       tr.classList.remove("editing");
-      loadTasks();
+      loadTasks(true);
     } else {
       alert("儲存失敗");
     }
+  }).catch(err => {
+    console.error("saveRow error =", err);
+    alert("儲存失敗");
   });
 }
 
 function deleteRow(id) {
   if (!confirm("確定要刪除這筆任務嗎？")) return;
+
   fetch(API_DELETE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -325,14 +858,20 @@ function deleteRow(id) {
     if (res.ok) {
       document.getElementById(`tr-${id}`)?.remove();
       alert("已刪除");
+      loadTasks(true);
     } else {
       alert("刪除失敗");
     }
+  }).catch(err => {
+    console.error("deleteRow error =", err);
+    alert("刪除失敗");
   });
 }
 
-window.onload = loadTasks;
+runSelfTests();
+window.onload = () => loadTasks(true);
 </script>
 
 </body>
 </html>
+
