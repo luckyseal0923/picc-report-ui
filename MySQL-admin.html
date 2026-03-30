@@ -8,9 +8,15 @@
 <style>
 :root {
   --primary: #10B981;
+  --primary-dark: #059669;
   --bg: #f1f5f9;
   --text: #334155;
   --border: #e2e8f0;
+  --navy: #1e3a8a;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -33,7 +39,7 @@ body {
 .header-title-wrap {
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-left: 6px solid #1e3a8a;
+  border-left: 6px solid var(--navy);
   border-radius: 10px;
   padding: 14px 18px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
@@ -71,16 +77,169 @@ body {
   border: 1px solid var(--border);
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
-.table-container {
-  width: 100%;
-  overflow-x: auto;
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.filter-field input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   background: white;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.filter-field-date input {
+  width: 150px;
+}
+
+.filter-field-keyword input {
+  width: 220px;
+}
+
+.chart-card,
+.table-container,
+.pager {
+  background: white;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.table-container {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pager {
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+}
+
+.chart-card {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid #cbd5e1;
+}
+
+.chart-card {
+  padding: 20px;
+  margin-top: 28px;
+  margin-bottom: 16px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.chart-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.chart-meta {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.bar-chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  min-height: 260px;
+  overflow-x: auto;
+  padding: 10px 4px 0;
+}
+
+.chart-threshold {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed #f59e0b;
+  pointer-events: none;
+}
+
+.chart-threshold-label {
+  position: absolute;
+  right: 0;
+  top: -12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b45309;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0 6px;
+}
+
+.bar-item {
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-value {
+  font-size: 12px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.bar-track {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 36px;
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  border-radius: 10px 10px 0 0;
+  min-height: 8px;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.08);
+}
+
+.bar-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.chart-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .list-toolbar {
@@ -104,6 +263,60 @@ body {
   color: #64748b;
 }
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th {
+  background: #e2e8f0;
+  padding: 14px;
+  font-size: 13px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-booking { background: #e0f2fe; color: #0369a1; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-done { background: #dcfce7; color: #166534; }
+
+.view-mode { display: inline; }
+.edit-mode { display: none; width: 95%; }
+.editing .view-mode { display: none; }
+.editing .edit-mode { display: inline; }
+
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-edit { background: #f1f5f9; }
+.btn-save { background: var(--primary); color: white; display: none; }
+.btn-del { background: #fee2e2; color: #b91c1c; }
+.editing .btn-save { display: inline-block; }
+.editing .btn-edit { display: none; }
+
 .pager {
   display: flex;
   justify-content: space-between;
@@ -111,10 +324,9 @@ body {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 14px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #dbe4ee;
 }
 
 .pager-left,
@@ -231,6 +443,12 @@ body {
   gap: 12px;
 }
 
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .modal-field label {
   display: block;
   font-size: 13px;
@@ -245,13 +463,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 14px;
-  box-sizing: border-box;
-}
-
-.modal-field {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
 }
 
 .modal-actions {
@@ -261,61 +472,6 @@ body {
   margin-top: 18px;
   flex-wrap: wrap;
 }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-th {
-  background: #e2e8f0;
-  padding: 14px;
-  font-size: 13px;
-  text-align: left;
-  border-bottom: 2px solid var(--border);
-  white-space: nowrap;
-}
-
-td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  vertical-align: middle;
-  word-break: break-word;
-}
-
-.status {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.status-booking { background: #e0f2fe; color: #0369a1; }
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-done { background: #dcfce7; color: #166534; }
-
-.view-mode { display: inline; }
-.edit-mode { display: none; width: 95%; }
-
-.editing .view-mode { display: none; }
-.editing .edit-mode { display: inline; }
-
-.btn {
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-}
-.btn-edit { background: #f1f5f9; }
-.btn-save { background: #10B981; color: white; display: none; }
-.btn-del { background: #fee2e2; color: #b91c1c; }
-
-.editing .btn-save { display: inline-block; }
-.editing .btn-edit { display: none; }
 
 @media (max-width: 1000px) {
   table, thead, tbody, th, td, tr { display: block; }
@@ -347,7 +503,6 @@ td {
 }
 </style>
 </head>
-
 <body>
 
 <div class="header">
@@ -356,13 +511,22 @@ td {
     <h2 class="header-title">PICC 後臺管理系統</h2>
     <div class="header-subtitle">院內 PICC 任務管理與案件追蹤</div>
   </div>
+
   <div class="filter-bar">
-    <input type="date" id="dateStart">
-    <span>至</span>
-    <input type="date" id="dateEnd">
-    <input type="text" id="keywordInput" placeholder="🔍 關鍵字搜尋…" oninput="filterKeyword()">
-    <button class="btn" style="background:var(--primary); color:white" onclick="loadTasks(true)">查詢區間</button>
-    <button class="btn" style="background:#0f172a; color:white" onclick="openCsvModal()">下載 CSV</button>
+    <div class="filter-field filter-field-date">
+      <label for="dateStart">開始日期</label>
+      <input type="date" id="dateStart">
+    </div>
+    <div class="filter-field filter-field-date">
+      <label for="dateEnd">結束日期</label>
+      <input type="date" id="dateEnd">
+    </div>
+    <div class="filter-field filter-field-keyword">
+      <label for="keywordInput">關鍵字搜尋</label>
+      <input type="text" id="keywordInput" placeholder="請輸入關鍵字" oninput="filterKeyword()">
+    </div>
+    <button class="btn" style="background:var(--primary); color:white; height:40px;" onclick="loadTasks(true)">查詢區間</button>
+    <button class="btn" style="background:#0f172a; color:white; height:40px;" onclick="openCsvModal()">下載 CSV</button>
   </div>
 </div>
 
@@ -428,6 +592,17 @@ td {
   </div>
 </div>
 
+<div class="chart-card">
+  <div class="chart-header">
+    <div>
+      <h3 class="chart-title">逐月 PICC 起單案件數</h3>
+      <div class="chart-subtitle">統計所有起單案件數，依起單月份彙整</div>
+    </div>
+    <div class="chart-meta" id="chartMeta">共 0 個月份</div>
+  </div>
+  <div class="bar-chart" id="monthlyChart"></div>
+</div>
+
 <div class="modal-backdrop" id="csvModal">
   <div class="modal-card">
     <div class="modal-title">下載 CSV</div>
@@ -460,7 +635,7 @@ let currentPage = 1;
 let pageSize = 30;
 
 function safe(v) {
-  return (v === undefined || v === null || v === "") ? "-" : v;
+  return v === undefined || v === null || v === "" ? "-" : v;
 }
 
 function renderStatus(status) {
@@ -493,12 +668,50 @@ function escapeHTML(value) {
     .replace(/'/g, "&#39;");
 }
 
-function runSelfTests() {
-  console.assert(formatDateLocal(new Date(2026, 2, 1)) === "2026-03-01", "formatDateLocal 測試失敗");
-  console.assert(formatDisplayDateTime("2026-03-17T13:21:00") === "2026/03/17 13:21", "formatDisplayDateTime 測試失敗");
-  console.assert(escapeCSV('a"b') === '"a""b"', "escapeCSV 測試失敗");
-  console.assert(renderPageNumbersForTest(10, 1) === "1,2,3,4,5,...,10", "頁碼測試 1 失敗");
-  console.assert(renderPageNumbersForTest(10, 8) === "1,...,6,7,8,9,10", "頁碼測試 2 失敗");
+function escapeCSV(value) {
+  const str = value === undefined || value === null ? "" : String(value);
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+function getMonthKey(value) {
+  if (!value) return "";
+  const text = String(value);
+  const match = text.match(/^(\d{4})[-/](\d{2})/);
+  if (!match) return "";
+  return `${match[1]}/${match[2]}`;
+}
+
+function getMonthlyEntries(rows) {
+  const monthMap = {};
+  rows.forEach(row => {
+    const key = getMonthKey(row.createdAt);
+    if (!key) return;
+    monthMap[key] = (monthMap[key] || 0) + 1;
+  });
+  return Object.entries(monthMap).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function renderPageNumbers(totalPages) {
+  if (totalPages <= 1) return "";
+
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage <= 4) {
+      pages.push(2, 3, 4, 5, "...", totalPages);
+    } else if (currentPage >= totalPages - 3) {
+      pages.push("...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push("...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+    }
+  }
+
+  return pages.map(p => {
+    if (p === "...") return '<span class="page-ellipsis">...</span>';
+    return `<button class="page-number ${p === currentPage ? "active" : ""}" onclick="goToPage(${p})">${p}</button>`;
+  }).join("");
 }
 
 function renderPageNumbersForTest(totalPages, page) {
@@ -506,48 +719,66 @@ function renderPageNumbersForTest(totalPages, page) {
   currentPage = page;
   const html = renderPageNumbers(totalPages);
   currentPage = oldCurrentPage;
-  return html
-    .replace(/<button[^>]*>(\d+)<\/button>/g, "$1")
-    .replace(/<span[^>]*>\.\.\.<\/span>/g, "...")
-    .replace(/\s+/g, "")
-    .replace(/></g, ",")
-    .replace(/,$/, "");
+  const holder = document.createElement("div");
+  holder.innerHTML = html;
+  return Array.from(holder.childNodes).map(node => node.textContent.trim()).filter(Boolean).join(",");
 }
 
-const now = new Date();
-const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-document.getElementById("dateStart").value = formatDateLocal(firstDayOfMonth);
-document.getElementById("dateEnd").value = formatDateLocal(now);
+function runSelfTests() {
+  console.assert(formatDateLocal(new Date(2026, 2, 1)) === "2026-03-01", "formatDateLocal 測試失敗");
+  console.assert(formatDisplayDateTime("2026-03-17T13:21:00") === "2026/03/17 13:21", "formatDisplayDateTime 測試失敗");
+  console.assert(escapeCSV('a"b') === '"a""b"', "escapeCSV 測試失敗");
+  console.assert(renderPageNumbersForTest(10, 1) === "1,2,3,4,5,...,10", "頁碼測試 1 失敗");
+  console.assert(renderPageNumbersForTest(10, 8) === "1,...,6,7,8,9,10", "頁碼測試 2 失敗");
+  console.assert(getMonthKey("2026-03-17T13:21:00") === "2026/03", "月份解析測試失敗");
+  console.assert(getMonthlyEntries([
+    { createdAt: "2026-03-01T08:00:00" },
+    { createdAt: "2026-03-15T08:00:00" },
+    { createdAt: "2026-04-01T08:00:00" }
+  ]).map(([k, v]) => `${k}:${v}`).join(",") === "2026/03:2,2026/04:1", "逐月統計測試失敗");
+}
 
-function loadTasks(useDateFilter = false) {
-  const dateStartEl = document.getElementById("dateStart");
-  const dateEndEl = document.getElementById("dateEnd");
+function renderMonthlyChart(rows) {
+  const chartEl = document.getElementById("monthlyChart");
+  const chartMeta = document.getElementById("chartMeta");
+  const entries = getMonthlyEntries(rows);
+  const threshold = 20;
 
-  const url = useDateFilter
-    ? `${API_LIST}?start=${dateStartEl.value}&end=${dateEndEl.value}`
-    : API_LIST;
+  chartMeta.textContent = `共 ${entries.length} 個月份`;
 
-  console.log("loadTasks url =", url);
+  if (!entries.length) {
+    chartEl.innerHTML = '<div class="chart-empty">目前沒有可呈現的逐月案件資料</div>';
+    return;
+  }
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      console.log("API 回傳資料 =", data);
-      allRows = Array.isArray(data) ? data : [];
-      filteredRows = [...allRows];
-      currentPage = 1;
-      renderTable();
-    })
-    .catch(err => {
-      console.error("loadTasks error =", err);
-      allRows = [];
-      filteredRows = [];
-      currentPage = 1;
-      renderTable();
-    });
+  const maxValue = Math.max(...entries.map(([, count]) => count), threshold, 1);
+  const thresholdHeight = Math.max(8, Math.round((threshold / maxValue) * 180));
+
+  const thresholdHtml = `
+    <div class="chart-threshold" style="bottom:${thresholdHeight}px;">
+      <span class="chart-threshold-label">20</span>
+    </div>
+  `;
+
+  const barsHtml = entries.map(([month, count]) => {
+    const height = Math.max(8, Math.round((count / maxValue) * 180));
+    return `
+      <div class="bar-item">
+        <div class="bar-value">${count}</div>
+        <div class="bar-track">
+          <div class="bar" style="height:${height}px;" title="${month}：${count} 筆"></div>
+        </div>
+        <div class="bar-label">${month}</div>
+      </div>
+    `;
+  }).join("");
+
+  chartEl.innerHTML = thresholdHtml + barsHtml;
 }
 
 function renderTable() {
+  renderMonthlyChart(allRows);
+
   const taskBody = document.getElementById("taskBody");
   const listMeta = document.getElementById("listMeta");
   const pageInfo = document.getElementById("pageInfo");
@@ -557,9 +788,7 @@ function renderTable() {
 
   const total = filteredRows.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  if (currentPage > totalPages) currentPage = totalPages;
-  if (currentPage < 1) currentPage = 1;
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -571,7 +800,7 @@ function renderTable() {
   nextPageBtn.disabled = currentPage === totalPages;
   pageNumbers.innerHTML = renderPageNumbers(totalPages);
 
-  if (pageRows.length === 0) {
+  if (!pageRows.length) {
     taskBody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:24px; color:#64748b;">目前沒有符合條件的案件</td></tr>';
     return;
   }
@@ -656,6 +885,33 @@ function renderTable() {
   }).join("");
 }
 
+function loadTasks(useDateFilter = false) {
+  const dateStartEl = document.getElementById("dateStart");
+  const dateEndEl = document.getElementById("dateEnd");
+  const url = useDateFilter
+    ? `${API_LIST}?start=${dateStartEl.value}&end=${dateEndEl.value}`
+    : API_LIST;
+
+  console.log("loadTasks url =", url);
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      console.log("API 回傳資料 =", data);
+      allRows = Array.isArray(data) ? data : [];
+      filteredRows = [...allRows];
+      currentPage = 1;
+      renderTable();
+    })
+    .catch(err => {
+      console.error("loadTasks error =", err);
+      allRows = [];
+      filteredRows = [];
+      currentPage = 1;
+      renderTable();
+    });
+}
+
 function filterKeyword() {
   const kw = document.getElementById("keywordInput").value.toLowerCase();
   filteredRows = allRows.filter(r => JSON.stringify(r).toLowerCase().includes(kw));
@@ -676,38 +932,6 @@ function goToPage(page) {
   renderTable();
 }
 
-function renderPageNumbers(totalPages) {
-  if (totalPages <= 1) return "";
-
-  const pages = [];
-
-  if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
-  } else {
-    pages.push(1);
-
-    if (currentPage <= 4) {
-      pages.push(2, 3, 4, 5, "...", totalPages);
-    } else if (currentPage >= totalPages - 3) {
-      pages.push("...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-    } else {
-      pages.push("...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
-    }
-  }
-
-  return pages.map(p => {
-    if (p === "...") {
-      return '<span class="page-ellipsis">...</span>';
-    }
-    return `<button class="page-number ${p === currentPage ? "active" : ""}" onclick="goToPage(${p})">${p}</button>`;
-  }).join("");
-}
-
-function escapeCSV(value) {
-  const str = value === undefined || value === null ? "" : String(value);
-  return `"${str.replace(/"/g, '""')}"`;
-}
-
 function openCsvModal() {
   document.getElementById("csvDateStart").value = document.getElementById("dateStart").value || "";
   document.getElementById("csvDateEnd").value = document.getElementById("dateEnd").value || "";
@@ -725,20 +949,8 @@ function buildCSVAndDownload(rows) {
   }
 
   const headers = [
-    "起單時間",
-    "任務編號",
-    "病人姓名",
-    "床號",
-    "病歷號",
-    "Status",
-    "接單者",
-    "施打者",
-    "管路種類",
-    "管路長度(cm)",
-    "部位",
-    "血管",
-    "困難度",
-    "備註"
+    "起單時間", "任務編號", "病人姓名", "床號", "病歷號", "Status",
+    "接單者", "施打者", "管路種類", "管路長度(cm)", "部位", "血管", "困難度", "備註"
   ];
 
   const csvRows = rows.map(row => [
@@ -808,7 +1020,8 @@ function confirmDownloadCSV() {
 }
 
 function toggleEdit(id) {
-  document.getElementById(`tr-${id}`).classList.add("editing");
+  const tr = document.getElementById(`tr-${id}`);
+  if (tr) tr.classList.add("editing");
 }
 
 function saveRow(id) {
@@ -856,7 +1069,6 @@ function deleteRow(id) {
     body: JSON.stringify({ task_id: id })
   }).then(res => {
     if (res.ok) {
-      document.getElementById(`tr-${id}`)?.remove();
       alert("已刪除");
       loadTasks(true);
     } else {
@@ -868,10 +1080,15 @@ function deleteRow(id) {
   });
 }
 
-runSelfTests();
-window.onload = () => loadTasks(true);
+(function init() {
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById("dateStart").value = formatDateLocal(firstDayOfMonth);
+  document.getElementById("dateEnd").value = formatDateLocal(now);
+  runSelfTests();
+  window.onload = () => loadTasks(true);
+})();
 </script>
 
 </body>
 </html>
-
