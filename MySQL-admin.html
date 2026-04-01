@@ -1081,12 +1081,10 @@ function deleteRow(id) {
 }
 
 (function init() {
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  document.getElementById("dateStart").value = formatDateLocal(firstDayOfMonth);
-  document.getElementById("dateEnd").value = formatDateLocal(now);
+  document.getElementById("dateStart").value = "";
+  document.getElementById("dateEnd").value = "";
   runSelfTests();
-  window.onload = () => loadTasks(true);
+  window.onload = () => loadTasks(false);
 })();
 </script>
 
