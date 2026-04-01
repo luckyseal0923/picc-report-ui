@@ -888,27 +888,27 @@ function renderTable() {
 function loadTasks(useDateFilter = false) {
   const dateStartEl = document.getElementById("dateStart");
   const dateEndEl = document.getElementById("dateEnd");
-  const url = useDateFilter
-    ? `${API_LIST}?start=${dateStartEl.value}&end=${dateEndEl.value}`
-    : API_LIST;
+  
+  // 如果開啟濾鏡但日期是空的，我們依然不帶參數發送，讓後端回傳全部
+  let url = API_LIST;
+  if (useDateFilter && dateStartEl.value && dateEndEl.value) {
+    url = `${API_LIST}?start=${dateStartEl.value}&end=${dateEndEl.value}`;
+  }
 
-  console.log("loadTasks url =", url);
+  console.log("正在請求資料:", url);
 
   fetch(url)
     .then(res => res.json())
     .then(data => {
-      console.log("API 回傳資料 =", data);
       allRows = Array.isArray(data) ? data : [];
       filteredRows = [...allRows];
       currentPage = 1;
       renderTable();
     })
     .catch(err => {
-      console.error("loadTasks error =", err);
-      allRows = [];
-      filteredRows = [];
-      currentPage = 1;
-      renderTable();
+      console.error("載入失敗:", err);
+      // 失敗時清空表格避免顯示舊資料
+      taskBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:red;">連線失敗</td></tr>';
     });
 }
 
